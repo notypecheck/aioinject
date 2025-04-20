@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import dataclasses
+from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any, TypeVar
 
 from aioinject._compilation.naming import (
@@ -30,7 +31,7 @@ __all__ = ["CompilationParams", "compile_fn"]
 @dataclasses.dataclass
 class CompilationParams:
     root: ProviderNode
-    nodes: list[ProviderNode]
+    nodes: Sequence[ProviderNode]
     scopes: type[BaseScope]
 
 

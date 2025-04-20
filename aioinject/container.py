@@ -3,6 +3,7 @@ from __future__ import annotations
 import collections
 import typing
 from collections.abc import Sequence
+from graphlib import TopologicalSorter
 from types import TracebackType
 from typing import Any, Final, Literal, Self, TypeAlias
 
@@ -35,7 +36,6 @@ from aioinject.scope import BaseScope, Scope, next_scope
 
 
 __all__ = ["Container", "Extensions", "Registry", "SyncContainer"]
-
 
 DEFAULT_EXTENSIONS = (
     ScopedProviderExtension(),
@@ -142,15 +142,25 @@ class Registry:
 
     @typing.overload
     def compile(
-        self, type_: type[T], *, is_async: Literal[True]
+        self,
+        type_: type[T],
+        *,
+        is_async: Literal[True],
     ) -> CompiledFn[T]: ...
+
     @typing.overload
     def compile(
-        self, type_: type[T], *, is_async: Literal[False]
+        self,
+        type_: type[T],
+        *,
+        is_async: Literal[False],
     ) -> SyncCompiledFn[T]: ...
 
     def compile(
-        self, type_: type[T], *, is_async: bool
+        self,
+        type_: type[T],
+        *,
+        is_async: bool,
     ) -> CompiledFn[T] | SyncCompiledFn[T]:
         key = (type_, is_async)
         if key not in self.compilation_cache:
@@ -170,7 +180,15 @@ class Registry:
                 name="root",
             )
             result = list(resolve_dependencies(root, registry=self))
-            result.reverse()
+            nodes_by_type = {node.type_: node for node in result}
+            graph = {
+                node: [nodes_by_type[dep.type_] for dep in node.dependencies]
+                for node in result
+            }
+
+            sorter = TopologicalSorter(graph)
+            result = list(sorter.static_order())
+
             self.compilation_cache[key] = compile_fn(
                 CompilationParams(
                     root=root,
