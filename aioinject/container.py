@@ -257,19 +257,12 @@ class Container(_BaseContainer):
         return self._root
 
     async def __aenter__(self) -> Self:
-        if not self._root:
-            self._root = Context(
-                scope=next_scope(self.scopes, None),
-                context={},
-                container=self,
-            )
-
         for extension in self.extensions.lifespan:
             await self.root.exit_stack.enter_async_context(
                 extension.lifespan(self)
             )
         for sync_extension in self.extensions.lifespan_sync:
-            self._root.exit_stack.enter_context(
+            self.root.exit_stack.enter_context(
                 sync_extension.lifespan_sync(self)
             )
 
@@ -301,15 +294,8 @@ class SyncContainer(_BaseContainer):
         _run_on_init_extensions(self)
 
     def __enter__(self) -> Self:
-        if not self._root:
-            self._root = SyncContext(
-                scope=next_scope(self.scopes, None),
-                context={},
-                container=self,
-            )
-
         for extension in self.extensions.lifespan_sync:
-            self._root.exit_stack.enter_context(extension.lifespan_sync(self))
+            self.root.exit_stack.enter_context(extension.lifespan_sync(self))
 
         return self
 
