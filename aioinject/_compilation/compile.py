@@ -1,16 +1,18 @@
 from __future__ import annotations
 
 import dataclasses
-import textwrap
-import typing
-from collections.abc import Awaitable, Callable, Iterator, Sequence
 from typing import TYPE_CHECKING, Any, TypeVar
 
-from aioinject._types import is_generic_alias
+from aioinject._compilation.naming import (
+    create_var_name,
+    generate_factory_kwargs,
+)
+from aioinject._compilation.resolve import ProviderNode
+from aioinject._compilation.util import Indent
+from aioinject._types import CompiledFn
 from aioinject.extensions.providers import (
     CacheDirective,
     CompilationDirective,
-    Dependency,
     ProviderInfo,
     ResolveDirective,
 )
@@ -19,23 +21,10 @@ from aioinject.scope import BaseScope
 
 if TYPE_CHECKING:
     from aioinject.container import Extensions, Registry
-from aioinject.context import ExecutionContext, ProviderRecord
+from aioinject.context import ProviderRecord
 
 
-__all__ = ["CompilationParams", "CompiledFn", "SyncCompiledFn", "compile_fn"]
-
-_T_co = TypeVar("_T_co", covariant=True)
-
-
-@dataclasses.dataclass(slots=True, kw_only=True)
-class ProviderNode:
-    type_: type[Any]
-    dependencies: tuple[Dependency[object], ...]
-    is_iterable: bool
-    name: str
-
-    def __hash__(self) -> int:
-        return hash((self.type_, self.is_iterable, self.dependencies))
+__all__ = ["CompilationParams", "compile_fn"]
 
 
 @dataclasses.dataclass
@@ -43,125 +32,6 @@ class CompilationParams:
     root: ProviderNode
     nodes: list[ProviderNode]
     scopes: type[BaseScope]
-
-
-def _get_orig_bases(type_: type) -> tuple[type, ...] | None:
-    return getattr(type_, "__orig_bases__", None)
-
-
-def generic_args_map(type_: type[object]) -> dict[str, type[object]]:
-    if is_generic_alias(type_):
-        params: dict[str, Any] = {
-            param.__name__: param
-            for param in type_.__origin__.__parameters__  # type: ignore[attr-defined]
-        }
-        return dict(zip(params, type_.__args__, strict=True))
-
-    args_map = {}
-    if orig_bases := _get_orig_bases(type_):
-        # find the generic parent
-        for base in orig_bases:
-            if is_generic_alias(base):  # noqa: SIM102
-                if params := {
-                    param.__name__: param
-                    for param in getattr(base.__origin__, "__parameters__", ())
-                }:
-                    args_map.update(
-                        dict(zip(params, base.__args__, strict=True)),
-                    )
-    return args_map
-
-
-def get_generic_arguments(type_: Any) -> list[typing.TypeVar] | None:
-    """
-    Returns generic arguments of given class, e.g. Class[T] would return [~T]
-    """
-    if is_generic_alias(type_):
-        args = typing.get_args(type_)
-        return [arg for arg in args if isinstance(arg, typing.TypeVar)]
-    return None
-
-
-def get_generic_parameter_map(
-    provided_type: type[object],
-    dependencies: Sequence[Dependency[Any]],
-) -> dict[str, type[object]]:
-    args_map = generic_args_map(provided_type)
-    if not args_map:
-        return {}
-
-    result = {}
-    for dependency in dependencies:
-        inner_type = dependency.type_
-        if args_map and (
-            generic_arguments := get_generic_arguments(inner_type)
-        ):
-            # This is a generic type, we need to resolve the type arguments
-            # and pass them to the provider.
-            resolved_args = tuple(
-                args_map[arg.__name__] for arg in generic_arguments
-            )
-            result[dependency.name] = inner_type[resolved_args]
-    return result
-
-
-def make_dependency_name(type_: type[object]) -> str:
-    args = typing.get_args(type_)
-    if not args:
-        return type_.__name__
-    args_str = "_".join(arg.__name__ for arg in args)
-    return f"{type_.__name__}_{args_str}"
-
-
-def sort_dependencies(
-    root: ProviderNode,
-    registry: Registry,
-) -> Iterator[ProviderNode]:
-    stack = [root]
-    yield root
-    seen = set()
-    while stack:
-        node = stack.pop()
-        providers = (
-            registry.get_providers(node.type_)
-            if node.is_iterable
-            else (registry.get_provider(node.type_),)
-        )
-
-        for provider in providers:
-            generic_args_map = get_generic_parameter_map(
-                provider.info.actual_type, provider.info.dependencies
-            )
-
-            for dependency in provider.info.dependencies:
-                dependency_type = generic_args_map.get(
-                    dependency.name, dependency.type_
-                )
-                dependency_provider = registry.get_provider(dependency_type)
-
-                dependency_args_map = get_generic_parameter_map(
-                    dependency_type, dependency_provider.info.dependencies
-                )
-
-                dependency_name = make_dependency_name(dependency_type)
-                dependency_node = ProviderNode(
-                    name=dependency_name,
-                    type_=dependency_type,
-                    dependencies=tuple(
-                        dep.with_type(
-                            dependency_args_map.get(dep.name, dep.type_)
-                        )
-                        for dep in dependency_provider.info.dependencies
-                    ),
-                    is_iterable=False,
-                )
-                if dependency_node in seen:
-                    continue
-
-                seen.add(dependency_node)
-
-                yield dependency_node
-                stack.append(dependency_node)
 
 
 BODY = """
@@ -190,39 +60,6 @@ CALL_SYNC_ON_RESOLVE_EXTENSION = (
     "for extension in registry.extensions.on_resolve_sync:\n"
     "     extension.on_resolve_sync(context=scopes[{scope_name}], provider={dependency}_record, instance={dependency}_instance)\n"
 )
-
-CompiledFn = Callable[[ExecutionContext], Awaitable[_T_co]]
-SyncCompiledFn = Callable[[ExecutionContext], _T_co]
-
-
-def create_var_name(dependency: ProviderNode) -> str:
-    return dependency.name
-
-
-def create_provider_name(dependency: ProviderNode) -> str:
-    return f"{create_var_name(dependency)}_provider"
-
-
-def create_type_name(dependency: ProviderNode) -> str:
-    return f"{create_var_name(dependency)}_type"
-
-
-def generate_factory_kwargs(dependencies: Sequence[Dependency[object]]) -> str:
-    kwargs = {
-        dependency.name: f"{make_dependency_name(dependency.type_)}_instance"
-        for dependency in dependencies
-    }
-    joined = ", ".join(f'"{k}": {v}' for k, v in kwargs.items())
-    return "{" + joined + "}"
-
-
-class Indent:
-    def __init__(self, char: str = " " * 4, indent: int = 0) -> None:
-        self._char = char
-        self.indent = indent
-
-    def format(self, text: str) -> str:
-        return textwrap.indent(text, self._char * self.indent)
 
 
 TCompilationDirective = TypeVar(
@@ -324,9 +161,9 @@ def compile_fn(
     }
     for node in params.nodes:
         provider = registry.get_provider(node.type_)
-        namespace[f"{create_provider_name(node)}"] = provider.provider
+        namespace[f"{create_var_name(node)}_provider"] = provider.provider
         namespace[f"{create_var_name(node)}_record"] = provider
-        namespace[f"{create_type_name(node)}"] = node.type_
+        namespace[f"{create_var_name(node)}_type"] = node.type_
 
     parts = []
 

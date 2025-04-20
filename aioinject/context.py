@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from aioinject.extensions import ProviderExtension
     from aioinject.extensions.providers import ProviderInfo
 
-from aioinject._types import T
+from aioinject._types import ExecutionContext, T
 
 
 __all__ = ["Context", "ProviderRecord", "SyncContext"]
@@ -24,9 +24,6 @@ class ProviderRecord(Generic[T]):
     provider: Provider[T]
     info: ProviderInfo[T]
     ext: ProviderExtension[Provider[T]]
-
-
-ExecutionContext = dict[BaseScope, "Context | SyncContext"]
 
 
 class Context:

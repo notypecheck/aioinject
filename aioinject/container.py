@@ -6,16 +6,16 @@ from collections.abc import Sequence
 from types import TracebackType
 from typing import Any, Final, Literal, Self, TypeAlias
 
-from aioinject._compile import (
+from aioinject._compilation import (
     CompilationParams,
-    CompiledFn,
-    ProviderNode,
-    SyncCompiledFn,
     compile_fn,
-    get_generic_parameter_map,
-    sort_dependencies,
 )
-from aioinject._types import T, get_generic_origin
+from aioinject._compilation.resolve import (
+    ProviderNode,
+    get_generic_parameter_map,
+    resolve_dependencies,
+)
+from aioinject._types import CompiledFn, SyncCompiledFn, T, get_generic_origin
 from aioinject.context import Context, ProviderRecord, SyncContext
 from aioinject.extensions import (
     Extension,
@@ -169,7 +169,7 @@ class Registry:
                 ),
                 name="root",
             )
-            result = list(sort_dependencies(root, registry=self))
+            result = list(resolve_dependencies(root, registry=self))
             result.reverse()
             self.compilation_cache[key] = compile_fn(
                 CompilationParams(

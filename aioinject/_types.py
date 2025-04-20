@@ -7,10 +7,11 @@ import inspect
 import sys
 import types
 import typing
-from collections.abc import Callable, Iterator, Mapping
+from collections.abc import Awaitable, Callable, Iterator, Mapping
 from inspect import isclass
 from types import GenericAlias
 from typing import (
+    TYPE_CHECKING,
     Any,
     TypeAlias,
     TypeGuard,
@@ -18,9 +19,15 @@ from typing import (
 )
 
 from aioinject.errors import CannotDetermineReturnTypeError
+from aioinject.scope import BaseScope
 
+
+if TYPE_CHECKING:
+    from aioinject.context import Context, SyncContext
 
 T = TypeVar("T")
+T_co = TypeVar("T_co", covariant=True)
+
 
 FactoryType: TypeAlias = (
     type[T]
@@ -40,6 +47,12 @@ _ASYNC_GENERATORS = {
     collections.abc.AsyncIterator,
 }
 
+ExecutionContext = dict[BaseScope, "Context | SyncContext"]
+
+
+CompiledFn = Callable[[ExecutionContext], Awaitable[T_co]]
+SyncCompiledFn = Callable[[ExecutionContext], T_co]
+
 
 def get_return_annotation(
     ret_annotation: str,
@@ -50,13 +63,6 @@ def get_return_annotation(
 
 def _get_function_namespace(fn: Callable[..., Any]) -> dict[str, Any]:
     return getattr(sys.modules.get(fn.__module__, None), "__dict__", {})
-
-
-def _get_type_hints(
-    obj: Any,
-    context: dict[str, type[Any]],
-) -> dict[str, Any]:
-    return typing.get_type_hints(obj, include_extras=True, localns=context)
 
 
 def _guess_return_type(  # noqa: C901
