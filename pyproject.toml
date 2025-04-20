@@ -44,6 +44,9 @@ dev = [
     "trio>=0.29.0",
     "uvicorn>=0.34.0",
 ]
+tests = [
+    "strawberry-graphql>=0.262.1",
+]
 
 [build-system]
 requires = ["hatchling"]

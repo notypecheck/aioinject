@@ -13,6 +13,7 @@ from types import GenericAlias
 from typing import (
     TYPE_CHECKING,
     Any,
+    ParamSpec,
     TypeAlias,
     TypeGuard,
     TypeVar,
@@ -26,8 +27,8 @@ if TYPE_CHECKING:
     from aioinject.context import Context, SyncContext
 
 T = TypeVar("T")
+P = ParamSpec("P")
 T_co = TypeVar("T_co", covariant=True)
-
 
 FactoryType: TypeAlias = (
     type[T]
@@ -48,7 +49,6 @@ _ASYNC_GENERATORS = {
 }
 
 ExecutionContext = dict[BaseScope, "Context | SyncContext"]
-
 
 CompiledFn = Callable[[ExecutionContext], Awaitable[T_co]]
 SyncCompiledFn = Callable[[ExecutionContext], T_co]

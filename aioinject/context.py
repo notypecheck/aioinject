@@ -72,6 +72,10 @@ class Context:
             cache=context,
         )
 
+    def add_context(self, context: dict[type[object], object]) -> None:
+        for key, value in context.items():
+            self.cache[key] = value
+
 
 class SyncContext:
     def __init__(
@@ -118,3 +122,7 @@ class SyncContext:
             container=self.container,
             cache=context,
         )
+
+    def add_context(self, context: dict[type[object], object]) -> None:
+        for key, value in context.items():
+            self.cache[key] = value

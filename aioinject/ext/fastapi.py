@@ -1,0 +1,70 @@
+from __future__ import annotations
+
+from collections.abc import Callable
+from typing import TYPE_CHECKING
+
+from fastapi.background import BackgroundTasks
+from fastapi.requests import Request
+from fastapi.websockets import WebSocket
+
+import aioinject.scope
+from aioinject.decorators import ContextParameter, base_inject
+
+
+if TYPE_CHECKING:
+    from starlette.types import ASGIApp, Receive, Scope, Send
+
+    from aioinject import Container
+
+from aioinject import FromContext
+from aioinject._types import P, T
+
+
+__all__ = ["AioInjectMiddleware", "inject"]
+
+
+def inject(function: Callable[P, T]) -> Callable[P, T]:
+    return base_inject(
+        function,
+        context_parameters=(
+            ContextParameter(name="aioinject__request", type_=Request),
+            ContextParameter(
+                name="aioinject__background_tasks", type_=BackgroundTasks
+            ),
+        ),
+        context_getter=lambda kwargs: kwargs[
+            "aioinject__request"
+        ].state.aioinject_context,
+    )
+
+
+class AioInjectMiddleware:
+    def __init__(
+        self,
+        app: ASGIApp,
+        container: Container,
+    ) -> None:
+        self.app = app
+        self.container = container
+
+        self.container.register(
+            FromContext(Request, scope=aioinject.scope.Scope.request)
+        )
+        self.container.register(
+            FromContext(BackgroundTasks, scope=aioinject.scope.Scope.request)
+        )
+
+    async def __call__(
+        self,
+        scope: Scope,
+        receive: Receive,
+        send: Send,
+    ) -> None:
+        async with self.container.context() as context:
+            if scope["type"] == "http":
+                request = Request(scope=scope, receive=receive, send=send)
+                request.state.aioinject_context = context
+            if scope["type"] == "websocket":
+                ws = WebSocket(scope=scope, receive=receive, send=send)
+                ws.state.aioinject_context = context
+            await self.app(scope, receive, send)
