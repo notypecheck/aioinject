@@ -4,8 +4,8 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from aioinject.containers import Container
-from aioinject.providers import Scoped
+from aioinject import Container, Scoped
+from aioinject.errors import CannotDetermineReturnTypeError
 
 
 async def test_deferred_dependencies() -> None:
@@ -37,7 +37,7 @@ async def test_deferred_dependencies() -> None:
 
 
 def test_provider_fn_deferred_dep_misuse() -> None:
-    with pytest.raises(ValueError) as exc_info:  # noqa: PT011
+    with pytest.raises(CannotDetermineReturnTypeError) as exc_info:
         from tests.container.mod_tests import (
             provider_fn_deferred_dep_misuse,  # noqa: F401
         )

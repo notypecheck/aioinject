@@ -1,21 +1,27 @@
 import collections
+import typing
+from typing import TypeVar
 
 import pytest
 
 from aioinject import (
-    Container,
     Object,
     Provider,
     Scoped,
     Singleton,
-    SyncInjectionContext,
+    SyncContainer,
+    SyncContext,
     Transient,
 )
-from aioinject._types import T
-from aioinject.extensions import SyncOnResolveExtension
+from aioinject.context import ProviderRecord
+from aioinject.extensions import OnResolveSyncExtension
 
 
-class _TestExtension(SyncOnResolveExtension):
+T = TypeVar("T")
+
+
+@typing.final
+class _TestExtension(OnResolveSyncExtension):
     def __init__(self) -> None:
         self.type_counter: dict[type[object], int] = collections.defaultdict(
             int,
@@ -23,11 +29,11 @@ class _TestExtension(SyncOnResolveExtension):
 
     def on_resolve_sync(
         self,
-        context: SyncInjectionContext,  # noqa: ARG002
-        provider: Provider[T],
+        context: SyncContext,  # noqa: ARG002
+        provider: ProviderRecord[T],
         instance: T,  # noqa: ARG002
     ) -> None:
-        self.type_counter[provider.type_] += 1
+        self.type_counter[provider.info.interface] += 1
 
 
 @pytest.mark.parametrize(
@@ -40,11 +46,11 @@ class _TestExtension(SyncOnResolveExtension):
     ],
 )
 def test_on_resolve(provider: Provider[int]) -> None:
-    container = Container()
+    extension = _TestExtension()
+    container = SyncContainer(extensions=(extension,))
     container.register(provider)
 
-    extension = _TestExtension()
-    with container.sync_context(extensions=(extension,)) as ctx:
+    with container.context() as ctx:
         for i in range(1, 10 + 1):
             number = ctx.resolve(int)
             assert number == 0

@@ -1,0 +1,2 @@
+class CannotDetermineReturnTypeError(Exception):
+    pass

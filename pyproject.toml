@@ -21,6 +21,11 @@ Documentation = "https://thirvondukr.github.io/aioinject/"
 Repository = "https://github.com/ThirVondukr/aioinject"
 
 [dependency-groups]
+benchmark = [
+    "dependency-injector>=4.46.0",
+    "dishka>=1.5.3",
+    "rodi>=2.0.8",
+]
 dev = [
     "aiogram>=3.18.0",
     "anyio>=4.8.0",
@@ -163,6 +168,7 @@ ban-relative-imports = "all"
 strict = true
 follow_imports = "normal"
 ignore_missing_imports = false
+exclude = "(docs|benchmark)"
 
 allow_redefinition = false
 disallow_any_explicit = false
