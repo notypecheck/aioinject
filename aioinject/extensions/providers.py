@@ -1,20 +1,17 @@
 import dataclasses
 from functools import cached_property
-from typing import Generic, TypeVar
+from typing import Generic
 
-from aioinject._types import is_iterable_generic_collection
+from aioinject._types import T, is_iterable_generic_collection
 from aioinject.scope import BaseScope
 
 
-_T = TypeVar("_T")
-
-
 @dataclasses.dataclass(slots=True, kw_only=True)
-class Dependency(Generic[_T]):
+class Dependency(Generic[T]):
     name: str
-    type_: type[_T]
+    type_: type[T]
 
-    def with_type(self, type_: type[_T]) -> "Dependency[_T]":
+    def with_type(self, type_: type[T]) -> "Dependency[T]":
         return Dependency(name=self.name, type_=type_)
 
     def __hash__(self) -> int:
@@ -38,9 +35,9 @@ class ResolveDirective(CompilationDirective):
 
 
 @dataclasses.dataclass(kw_only=True)
-class ProviderInfo(Generic[_T]):
-    interface: type[_T]
-    actual_type: type[_T]
+class ProviderInfo(Generic[T]):
+    interface: type[T]
+    actual_type: type[T]
     dependencies: tuple[Dependency[object], ...]
     scope: BaseScope
     compilation_directives: tuple[CompilationDirective, ...]

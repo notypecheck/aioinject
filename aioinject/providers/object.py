@@ -1,6 +1,7 @@
 from collections.abc import Mapping
-from typing import Any, TypeVar
+from typing import Any
 
+from aioinject._types import T
 from aioinject.extensions import ProviderExtension
 from aioinject.extensions.providers import (
     CacheDirective,
@@ -11,18 +12,15 @@ from aioinject.providers import Provider
 from aioinject.scope import BaseScope, Scope
 
 
-_T = TypeVar("_T")
-
-
-class Object(Provider[_T]):
-    def __init__(self, obj: _T, type_: type[_T] | None = None) -> None:
+class Object(Provider[T]):
+    def __init__(self, obj: T, type_: type[T] | None = None) -> None:
         self.implementation = obj
         self.interface = type_
 
     def provide(
         self,
         kwargs: Mapping[str, Any],  # noqa: ARG002
-    ) -> _T:
+    ) -> T:
         return self.implementation
 
     def __repr__(self) -> str:
@@ -38,9 +36,9 @@ class ObjectProviderExtension(ProviderExtension[Object[Any]]):
 
     def extract(
         self,
-        provider: Object[_T],
+        provider: Object[T],
         type_context: Mapping[str, Any],  # noqa: ARG002
-    ) -> ProviderInfo[_T]:
+    ) -> ProviderInfo[T]:
         actual_type = type(provider.implementation)
 
         return ProviderInfo(

@@ -4,7 +4,7 @@ import collections
 import typing
 from collections.abc import Sequence
 from types import TracebackType
-from typing import Any, Final, Literal, Self, TypeAlias, TypeVar
+from typing import Any, Final, Literal, Self, TypeAlias
 
 from aioinject._compile import (
     CompilationParams,
@@ -15,7 +15,7 @@ from aioinject._compile import (
     get_generic_parameter_map,
     sort_dependencies,
 )
-from aioinject._types import get_generic_origin
+from aioinject._types import T, get_generic_origin
 from aioinject.context import Context, ProviderRecord, SyncContext
 from aioinject.extensions import (
     Extension,
@@ -36,8 +36,6 @@ from aioinject.scope import BaseScope, Scope, next_scope
 
 __all__ = ["Container", "Extensions", "Registry", "SyncContainer"]
 
-
-T = TypeVar("T")
 
 DEFAULT_EXTENSIONS = (
     ScopedProviderExtension(),

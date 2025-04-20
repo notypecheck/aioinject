@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-from typing import Any, Protocol, TypeVar
+from typing import Any, Protocol
+
+from aioinject._types import T
 
 
-_T = TypeVar("_T")
-
-
-class Provider(Protocol[_T]):
-    interface: type[_T] | None
+class Provider(Protocol[T]):
+    interface: type[T] | None
     implementation: Any
 
     def provide(self, kwargs: dict[str, Any]) -> object: ...

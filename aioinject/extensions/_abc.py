@@ -17,11 +17,11 @@ from aioinject.extensions.providers import ProviderInfo
 
 if TYPE_CHECKING:
     from aioinject import Container, Context, SyncContainer, SyncContext
+    from aioinject._types import T
 
 from aioinject.providers import Provider
 
 
-_T = TypeVar("_T")
 _TProvider_contra = TypeVar(
     "_TProvider_contra", bound=Provider[Any], contravariant=True
 )
@@ -59,7 +59,7 @@ class ProviderExtension(Protocol[_TProvider_contra]):
         self,
         provider: _TProvider_contra,
         type_context: Mapping[str, type[object]],
-    ) -> ProviderInfo[_T]: ...
+    ) -> ProviderInfo[T]: ...
 
 
 @runtime_checkable
@@ -67,8 +67,8 @@ class OnResolveExtension(Protocol):
     async def on_resolve(
         self,
         context: Context,
-        provider: ProviderRecord[_T],
-        instance: _T,
+        provider: ProviderRecord[T],
+        instance: T,
     ) -> None: ...
 
 
@@ -77,8 +77,8 @@ class OnResolveSyncExtension(Protocol):
     def on_resolve_sync(
         self,
         context: SyncContext,
-        provider: ProviderRecord[_T],
-        instance: _T,
+        provider: ProviderRecord[T],
+        instance: T,
     ) -> None: ...
 
 

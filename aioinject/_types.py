@@ -20,15 +20,15 @@ from typing import (
 from aioinject.errors import CannotDetermineReturnTypeError
 
 
-_T = TypeVar("_T")
+T = TypeVar("T")
 
 FactoryType: TypeAlias = (
-    type[_T]
-    | Callable[..., _T]
-    | Callable[..., collections.abc.Awaitable[_T]]
-    | Callable[..., collections.abc.Coroutine[Any, Any, _T]]
-    | Callable[..., collections.abc.Iterator[_T]]
-    | Callable[..., collections.abc.AsyncIterator[_T]]
+    type[T]
+    | Callable[..., T]
+    | Callable[..., collections.abc.Awaitable[T]]
+    | Callable[..., collections.abc.Coroutine[Any, Any, T]]
+    | Callable[..., collections.abc.Iterator[T]]
+    | Callable[..., collections.abc.AsyncIterator[T]]
 )
 
 _GENERATORS = {
@@ -60,14 +60,15 @@ def _get_type_hints(
 
 
 def _guess_return_type(  # noqa: C901
-    factory: FactoryType[_T], type_context: Mapping[str, type[object]]
-) -> type[_T]:
+    factory: FactoryType[T],
+    type_context: Mapping[str, type[object]],
+) -> type[T]:
     unwrapped = inspect.unwrap(factory)
 
     origin = typing.get_origin(factory)
     is_generic = origin and inspect.isclass(origin)
     if isclass(factory) or is_generic:
-        return typing.cast("type[_T]", factory)
+        return typing.cast("type[T]", factory)
 
     try:
         return_type = typing.get_type_hints(

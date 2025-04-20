@@ -1,9 +1,9 @@
 import functools
 import inspect
 from collections.abc import Mapping
-from typing import Any, TypeVar
+from typing import Any
 
-from aioinject._types import FactoryType, _guess_return_type
+from aioinject._types import FactoryType, T, _guess_return_type
 from aioinject.dependencies import collect_parameters
 from aioinject.errors import CannotDetermineReturnTypeError
 from aioinject.extensions import ProviderExtension
@@ -16,17 +16,14 @@ from aioinject.providers import Provider
 from aioinject.scope import BaseScope, Scope
 
 
-_T = TypeVar("_T")
-
-
-class Scoped(Provider[_T]):
+class Scoped(Provider[T]):
     _DEFAULT_SCOPE = Scope.request
     cache_ok: bool = True
 
     def __init__(
         self,
-        factory: FactoryType[_T],
-        interface: type[_T] | None = None,
+        factory: FactoryType[T],
+        interface: type[T] | None = None,
         scope: BaseScope | None = None,
     ) -> None:
         self.implementation = factory
@@ -54,11 +51,11 @@ class Scoped(Provider[_T]):
         ) or inspect.isasyncgenfunction(unwrapped)
 
 
-class Singleton(Scoped[_T]):
+class Singleton(Scoped[T]):
     _DEFAULT_SCOPE = Scope.lifetime
 
 
-class Transient(Scoped[_T]):
+class Transient(Scoped[T]):
     _DEFAULT_SCOPE = Scope.lifetime
     cache_ok = False
 
@@ -69,9 +66,9 @@ class ScopedProviderExtension(ProviderExtension[Scoped[Any]]):
 
     def extract(
         self,
-        provider: Scoped[_T],
+        provider: Scoped[T],
         type_context: Mapping[str, type[object]],
-    ) -> ProviderInfo[_T]:
+    ) -> ProviderInfo[T]:
         dependencies = tuple(
             collect_parameters(
                 dependant=provider.implementation,

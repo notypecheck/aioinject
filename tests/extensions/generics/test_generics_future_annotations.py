@@ -1,11 +1,9 @@
 from __future__ import annotations
 
-from typing import Generic, TypeVar
+from typing import Generic
 
 from aioinject import Container, Scoped
-
-
-T = TypeVar("T")
+from aioinject._types import T
 
 
 class TestGeneric(Generic[T]):

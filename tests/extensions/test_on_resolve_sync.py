@@ -1,6 +1,5 @@
 import collections
 import typing
-from typing import TypeVar
 
 import pytest
 
@@ -13,11 +12,9 @@ from aioinject import (
     SyncContext,
     Transient,
 )
+from aioinject._types import T
 from aioinject.context import ProviderRecord
 from aioinject.extensions import OnResolveSyncExtension
-
-
-T = TypeVar("T")
 
 
 @typing.final

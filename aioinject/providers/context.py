@@ -1,6 +1,7 @@
 from collections.abc import Mapping
-from typing import Any, TypeVar
+from typing import Any
 
+from aioinject._types import T
 from aioinject.extensions import ProviderExtension
 from aioinject.extensions.providers import (
     CacheDirective,
@@ -8,9 +9,6 @@ from aioinject.extensions.providers import (
 )
 from aioinject.providers.abc import Provider
 from aioinject.scope import BaseScope
-
-
-T = TypeVar("T")
 
 
 class FromContext(Provider[T]):

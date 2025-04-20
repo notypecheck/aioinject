@@ -3,7 +3,7 @@ from __future__ import annotations
 import contextlib
 import dataclasses
 from types import TracebackType
-from typing import TYPE_CHECKING, Final, Generic, Self, TypeVar
+from typing import TYPE_CHECKING, Final, Generic, Self
 
 from aioinject.scope import BaseScope, next_scope
 
@@ -13,10 +13,10 @@ if TYPE_CHECKING:
     from aioinject.extensions import ProviderExtension
     from aioinject.extensions.providers import ProviderInfo
 
+from aioinject._types import T
+
 
 __all__ = ["Context", "ProviderRecord", "SyncContext"]
-
-T = TypeVar("T")
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)
