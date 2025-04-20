@@ -63,7 +63,7 @@ class Transient(Scoped[_T]):
     cache_ok = False
 
 
-class ScopedExtension(ProviderExtension[Scoped[Any]]):
+class ScopedProviderExtension(ProviderExtension[Scoped[Any]]):
     def supports_provider(self, provider: Scoped[object]) -> bool:
         return isinstance(provider, Scoped)
 

@@ -29,7 +29,7 @@ class Object(Provider[_T]):
         return f"{self.__class__.__name__}({self.implementation=}, {self.interface=})"
 
 
-class ObjectExtension(ProviderExtension[Object[Any]]):
+class ObjectProviderExtension(ProviderExtension[Object[Any]]):
     def __init__(self, default_scope: BaseScope = Scope.lifetime) -> None:
         self.default_scope = default_scope
 

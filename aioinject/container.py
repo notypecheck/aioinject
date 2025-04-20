@@ -29,8 +29,8 @@ from aioinject.extensions import (
 from aioinject.extensions.providers import ProviderInfo
 from aioinject.providers import Provider
 from aioinject.providers.context import ContextProviderExtension
-from aioinject.providers.object import ObjectExtension
-from aioinject.providers.scoped import ScopedExtension
+from aioinject.providers.object import ObjectProviderExtension
+from aioinject.providers.scoped import ScopedProviderExtension
 from aioinject.scope import BaseScope, Scope, next_scope
 
 
@@ -40,8 +40,8 @@ __all__ = ["Container", "Extensions", "Registry", "SyncContainer"]
 T = TypeVar("T")
 
 DEFAULT_EXTENSIONS = (
-    ScopedExtension(),
-    ObjectExtension(),
+    ScopedProviderExtension(),
+    ObjectProviderExtension(),
     ContextProviderExtension(),
 )
 
