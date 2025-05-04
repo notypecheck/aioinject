@@ -9,6 +9,7 @@ from aioinject.errors import CannotDetermineReturnTypeError
 from aioinject.extensions import ProviderExtension
 from aioinject.extensions.providers import (
     CacheDirective,
+    LockDirective,
     ProviderInfo,
     ResolveDirective,
 )
@@ -96,5 +97,6 @@ class ScopedProviderExtension(ProviderExtension[Scoped[Any]]):
                     is_async=provider.is_async,
                     is_context_manager=provider.is_context_manager,
                 ),
+                LockDirective(is_enabled=isinstance(provider, Singleton)),
             ),
         )

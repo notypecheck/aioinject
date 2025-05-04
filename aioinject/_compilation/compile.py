@@ -14,6 +14,7 @@ from aioinject._types import CompiledFn
 from aioinject.extensions.providers import (
     CacheDirective,
     CompilationDirective,
+    LockDirective,
     ProviderInfo,
     ResolveDirective,
 )
@@ -50,6 +51,11 @@ CHECK_CACHE_STRICT = (
 )
 CREATE_REGULAR_INSTANCE = (
     "{dependency}_instance = {await}{dependency}_provider.provide({kwargs})\n"
+)
+ACQUIRE_LOCK = "{async}with scopes[{scope_name}].lock:\n"
+ACQUIRE_DOUBLE_CHECK_LOCK = (
+    "{async}with scopes[{scope_name}].lock:\n"
+    "    if ({dependency}_instance := {scope_name}_cache.get({dependency}_type, NotInCache)) is NotInCache:\n"
 )
 CREATE_CONTEXT_MANAGER_INSTANCE = "{dependency}_instance = {await}{scope_name}_exit_stack.{context_manager_method}({dependency}_provider.provide({kwargs}))\n"
 STORE_CACHE = "{scope_name}_cache[{dependency}_type] = {dependency}_instance\n"
@@ -88,13 +94,14 @@ def _compile_provider(  # noqa: C901
     *,
     is_async: bool,
 ) -> list[str]:
-    parts = []
+    parts: list[str] = []
 
     kwargs = generate_factory_kwargs(node.dependencies)
     indent = Indent(indent=1)
 
     cache_directive = get_directive(provider.info, CacheDirective)
     resolve_directive = get_directive(provider.info, ResolveDirective)
+    lock_directive = get_directive(provider.info, LockDirective)
 
     common_context = {
         "dependency": create_var_name(node),
@@ -110,6 +117,12 @@ def _compile_provider(  # noqa: C901
             parts.append(
                 indent.format(CHECK_CACHE_STRICT.format_map(common_context))
             )
+
+    if lock_directive:
+        part = ACQUIRE_LOCK if not cache_directive else ACQUIRE_DOUBLE_CHECK_LOCK
+        context = common_context | {"async": "async " if is_async else ""}
+        parts.append(indent.format(part).format_map(context))
+        indent.indent += 1 if not cache_directive else 2
 
     if resolve_directive:
         context = common_context | {

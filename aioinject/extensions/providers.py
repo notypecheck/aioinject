@@ -34,6 +34,11 @@ class ResolveDirective(CompilationDirective):
     is_context_manager: bool
 
 
+@dataclasses.dataclass(slots=True, kw_only=True)
+class LockDirective(CompilationDirective):
+    pass
+
+
 @dataclasses.dataclass(kw_only=True)
 class ProviderInfo(Generic[T]):
     interface: type[T]

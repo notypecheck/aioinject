@@ -1,7 +1,11 @@
 from __future__ import annotations
 
+import asyncio
 import contextlib
 import dataclasses
+import threading
+from collections.abc import Callable
+from contextlib import AbstractAsyncContextManager, AbstractContextManager
 from types import TracebackType
 from typing import TYPE_CHECKING, Final, Generic, Self
 
@@ -33,6 +37,9 @@ class Context:
         context: ExecutionContext,
         container: Container,
         cache: dict[type[object], object] | None = None,
+        lock_factory: Callable[
+            [], AbstractAsyncContextManager[object]
+        ] = asyncio.Lock,
     ) -> None:
         self.scope: Final = scope
         self.container: Final = container
@@ -44,6 +51,7 @@ class Context:
             cache if cache is not None else {}
         )
         self.exit_stack = contextlib.AsyncExitStack()
+        self.lock = lock_factory()
 
     async def __aenter__(self) -> Self:
         return self
@@ -84,6 +92,9 @@ class SyncContext:
         context: ExecutionContext,
         container: SyncContainer,
         cache: dict[type[object], object] | None = None,
+        lock_factory: Callable[
+            [], AbstractContextManager[object]
+        ] = threading.Lock,
     ) -> None:
         self.scope: Final = scope
         self.container: Final = container
@@ -95,6 +106,7 @@ class SyncContext:
             cache if cache is not None else {}
         )
         self.exit_stack = contextlib.ExitStack()
+        self.lock = lock_factory()
 
     def __enter__(self) -> Self:
         return self
