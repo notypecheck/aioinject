@@ -32,7 +32,7 @@ class ContextProviderExtension(ProviderExtension[FromContext[Any]]):
     ) -> ProviderInfo[T]:
         return ProviderInfo(
             interface=provider.implementation,
-            actual_type=provider.implementation,
+            type_=provider.implementation,
             dependencies=(),
             scope=provider.scope,
             compilation_directives=(CacheDirective(optional=False),),

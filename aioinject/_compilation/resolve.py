@@ -102,7 +102,7 @@ def resolve_dependencies(
 
         for provider in providers:
             generic_args_map = get_generic_parameter_map(
-                provider.info.actual_type, provider.info.dependencies
+                provider.info.type_, provider.info.dependencies
             )
 
             for dependency in provider.info.dependencies:

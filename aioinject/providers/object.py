@@ -43,7 +43,7 @@ class ObjectProviderExtension(ProviderExtension[Object[Any]]):
 
         return ProviderInfo(
             interface=provider.interface or actual_type,
-            actual_type=actual_type,
+            type_=actual_type,
             dependencies=(),
             scope=self.default_scope,
             compilation_directives=(

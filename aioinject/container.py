@@ -121,9 +121,9 @@ class Registry:
                         ext=ext,
                     )
                 )
-                if class_name := info.actual_type.__name__:
+                if class_name := info.type_.__name__:
                     self.type_context[class_name] = get_generic_origin(
-                        info.actual_type
+                        info.type_
                     )
 
                 break
@@ -167,7 +167,7 @@ class Registry:
             provider = self.get_provider(type_)
 
             generic_args_map = get_generic_parameter_map(
-                provided_type=provider.info.actual_type,
+                provided_type=provider.info.type_,
                 dependencies=provider.info.dependencies,
             )
             root = ProviderNode(

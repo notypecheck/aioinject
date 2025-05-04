@@ -87,7 +87,7 @@ class ScopedProviderExtension(ProviderExtension[Scoped[Any]]):
 
         return ProviderInfo(
             interface=provider.interface or actual_type,
-            actual_type=actual_type,
+            type_=actual_type,
             dependencies=dependencies,
             scope=provider.scope,
             compilation_directives=(

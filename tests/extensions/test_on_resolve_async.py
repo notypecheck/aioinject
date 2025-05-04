@@ -30,7 +30,7 @@ class _TestExtension(OnResolveExtension):
         provider: ProviderRecord[T],
         instance: T,  # noqa: ARG002
     ) -> None:
-        self.type_counter[provider.info.actual_type] += 1
+        self.type_counter[provider.info.type_] += 1
 
 
 @pytest.mark.parametrize(

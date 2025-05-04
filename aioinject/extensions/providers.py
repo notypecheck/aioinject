@@ -37,7 +37,7 @@ class ResolveDirective(CompilationDirective):
 @dataclasses.dataclass(kw_only=True)
 class ProviderInfo(Generic[T]):
     interface: type[T]
-    actual_type: type[T]
+    type_: type[T]
     dependencies: tuple[Dependency[object], ...]
     scope: BaseScope
     compilation_directives: tuple[CompilationDirective, ...]

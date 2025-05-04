@@ -39,7 +39,7 @@ def test_can_register_single(container: Container) -> None:
     record = container.registry.providers[AbstractImplA][0]
     assert record.provider is provider
     assert record.info.interface is AbstractImplA
-    assert record.info.actual_type is AbstractImplA
+    assert record.info.type_ is AbstractImplA
 
 
 def test_can_register_batch(container: Container) -> None:
