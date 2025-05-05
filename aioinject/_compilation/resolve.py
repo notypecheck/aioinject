@@ -29,11 +29,13 @@ def _get_orig_bases(type_: type) -> tuple[type, ...] | None:
     return getattr(type_, "__orig_bases__", None)
 
 
-def generic_args_map(type_: type[object]) -> dict[str, type[object]]:
+def generic_args_map(type_: type[object]) -> dict[str, type[object]]:  # noqa: C901
     if is_generic_alias(type_):
+        if not (parameters := getattr(type_.__origin__, "__parameters__", ())):
+            return {}
+
         params: dict[str, Any] = {
-            param.__name__: param
-            for param in type_.__origin__.__parameters__  # type: ignore[attr-defined]
+            param.__name__: param for param in parameters
         }
         return dict(zip(params, type_.__args__, strict=True))
 
@@ -73,9 +75,10 @@ def get_generic_parameter_map(
     result = {}
     for dependency in dependencies:
         inner_type = dependency.type_
-        if args_map and (
-            generic_arguments := get_generic_arguments(inner_type)
-        ):
+        if dependency.type_.__name__ in args_map:
+            result[dependency.name] = args_map[dependency.type_.__name__]
+
+        if generic_arguments := get_generic_arguments(inner_type):
             # This is a generic type, we need to resolve the type arguments
             # and pass them to the provider.
             resolved_args = tuple(
@@ -102,7 +105,7 @@ def resolve_dependencies(
 
         for provider in providers:
             generic_args_map = get_generic_parameter_map(
-                provider.info.type_, provider.info.dependencies
+                node.type_, provider.info.dependencies
             )
 
             for dependency in provider.info.dependencies:

@@ -18,7 +18,7 @@ from aioinject._types import P, T
 from aioinject.decorators import ContextParameter, base_inject
 
 
-def _find_info_parameter(
+def _find_strawberry_info_parameter(
     function: Callable[..., Any],
 ) -> inspect.Parameter | None:
     signature = inspect.signature(function)
@@ -34,7 +34,7 @@ def _find_info_parameter(
 
 
 def inject(function: Callable[P, T]) -> Callable[P, T]:
-    info_parameter = _find_info_parameter(function)
+    info_parameter = _find_strawberry_info_parameter(function)
     info_parameter_name = (
         info_parameter.name if info_parameter else "aioinject_info"
     )

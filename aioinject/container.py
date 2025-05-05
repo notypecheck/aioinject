@@ -134,6 +134,12 @@ class Registry:
         if providers := self.providers.get(type_):
             return providers
 
+        # Default to non-generic alias provider if there's one
+        if (origin := typing.get_origin(type_)) and (
+            providers := self.providers.get(origin)
+        ):
+            return providers
+
         err_msg = f"Providers for type {type_.__name__} not found"
         raise ValueError(err_msg)
 
@@ -167,7 +173,7 @@ class Registry:
             provider = self.get_provider(type_)
 
             generic_args_map = get_generic_parameter_map(
-                provided_type=provider.info.type_,
+                provided_type=type_,
                 dependencies=provider.info.dependencies,
             )
             root = ProviderNode(

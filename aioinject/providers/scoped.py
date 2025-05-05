@@ -57,7 +57,7 @@ class Singleton(Scoped[T]):
 
 
 class Transient(Scoped[T]):
-    _DEFAULT_SCOPE = Scope.lifetime
+    _DEFAULT_SCOPE = Scope.request
     cache_ok = False
 
 

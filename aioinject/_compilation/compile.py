@@ -119,7 +119,9 @@ def _compile_provider(  # noqa: C901
             )
 
     if lock_directive:
-        part = ACQUIRE_LOCK if not cache_directive else ACQUIRE_DOUBLE_CHECK_LOCK
+        part = (
+            ACQUIRE_LOCK if not cache_directive else ACQUIRE_DOUBLE_CHECK_LOCK
+        )
         context = common_context | {"async": "async " if is_async else ""}
         parts.append(indent.format(part).format_map(context))
         indent.indent += 1 if not cache_directive else 2

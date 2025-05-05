@@ -113,17 +113,20 @@ def add_parameters_to_signature(
     parameters: dict[str, type[object]],
 ) -> Callable[P, T]:
     signature = inspect.signature(func)
-    params = tuple(signature.parameters.values()) + tuple(
+    params = tuple(
+        v for v in signature.parameters.values() if v.name not in parameters
+    ) + tuple(
         inspect.Parameter(
             name=name,
             annotation=annotation,
             kind=inspect.Parameter.KEYWORD_ONLY,
         )
         for name, annotation in parameters.items()
-        if name not in signature.parameters
     )
 
     func.__signature__ = signature.replace(parameters=params)  # type: ignore[attr-defined]
+    for name, annotation in parameters.items():
+        func.__annotations__[name] = annotation
     return func
 
 
@@ -274,9 +277,6 @@ def base_inject(
     enter_context: bool = False,
 ) -> Callable[P, T]:
     dependencies = list(collect_dependencies(function))
-    function = add_parameters_to_signature(
-        function, {p.name: p.type_ for p in context_parameters}
-    )
 
     is_async = inspect.iscoroutinefunction(
         function
@@ -295,8 +295,10 @@ def base_inject(
         context_getter=context_getter,
     )
     wrapper = functools.update_wrapper(wrapper=wrapper, wrapped=function)
-
-    return clear_wrapper(
+    wrapper = clear_wrapper(
         wrapper,
         args=[dep.name for dep in dependencies],
+    )
+    return add_parameters_to_signature(
+        wrapper, {p.name: p.type_ for p in context_parameters}
     )

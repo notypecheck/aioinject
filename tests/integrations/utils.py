@@ -1,5 +1,6 @@
 import contextlib
 from collections.abc import AsyncIterator
+from typing import Self
 
 
 class PropagatedError(Exception):
@@ -11,9 +12,9 @@ class ExceptionPropagation:
         self.exc: BaseException | None = None
 
     @contextlib.asynccontextmanager
-    async def dependency(self) -> AsyncIterator[int]:
+    async def dependency(self) -> AsyncIterator[Self]:
         try:
-            yield 0
+            yield self
         except Exception as exc:
             self.exc = exc
             raise

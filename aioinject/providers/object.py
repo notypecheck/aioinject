@@ -1,3 +1,5 @@
+import inspect
+import typing
 from collections.abc import Mapping
 from typing import Any
 
@@ -39,7 +41,12 @@ class ObjectProviderExtension(ProviderExtension[Object[Any]]):
         provider: Object[T],
         type_context: Mapping[str, Any],  # noqa: ARG002
     ) -> ProviderInfo[T]:
-        actual_type = type(provider.implementation)
+        actual_type = typing.cast(
+            "type[T]",
+            type[provider.implementation]
+            if inspect.isclass(provider.implementation)
+            else type(provider.implementation),
+        )
 
         return ProviderInfo(
             interface=provider.interface or actual_type,

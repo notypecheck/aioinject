@@ -115,6 +115,8 @@ def _guess_return_type(  # noqa: C901
     if return_type == typing.Self and (
         self_cls := getattr(factory, "__self__", None)
     ):
+        if not inspect.isclass(self_cls):
+            return self_cls.__class__
         return self_cls
 
     return return_type
