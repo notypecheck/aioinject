@@ -193,12 +193,15 @@ def _resolve_node(type_: type[Any], registry: Registry) -> AnyNode:
             ),
         )
 
+    resolved_type = (
+        provider.info.type_ if type_ == provider.info.interface else type_
+    )
     return ProviderNode(
-        type_=type_,
-        name=make_dependency_name(type_),
+        type_=resolved_type,
+        name=make_dependency_name(resolved_type),
         provider=provider,
         dependencies=_resolve_provider_node_dependencies(
-            type_, provider, registry
+            resolved_type, provider, registry
         ),
     )
 
