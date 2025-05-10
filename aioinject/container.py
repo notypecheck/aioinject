@@ -169,7 +169,9 @@ class Registry:
     ) -> CompiledFn[T] | SyncCompiledFn[T]:
         key = (type_, is_async)
         if key not in self.compilation_cache:
-            result = list(resolve_dependencies(root_type=type_, registry=self))
+            result = tuple(
+                resolve_dependencies(root_type=type_, registry=self)
+            )
             nodes_by_type = {node.type_: node for node in result}
             graph = {
                 node: [nodes_by_type[dep.type_] for dep in node.dependencies]
@@ -177,7 +179,7 @@ class Registry:
             }
 
             sorter = TopologicalSorter(graph)
-            result = list(sorter.static_order())
+            result = tuple(sorter.static_order())
 
             self.compilation_cache[key] = compile_fn(
                 CompilationParams(

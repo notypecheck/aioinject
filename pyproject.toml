@@ -48,6 +48,9 @@ tests = [
     "strawberry-graphql>=0.262.1",
 ]
 
+[tool.uv]
+default-groups = "all"
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
