@@ -18,7 +18,7 @@ class FromContext(Provider[T]):
         self.scope = scope
 
     def provide(self, kwargs: dict[str, Any]) -> object:
-        pass
+        raise NotImplementedError
 
 
 class ContextProviderExtension(ProviderExtension[FromContext[Any]]):

@@ -131,8 +131,6 @@ ignore = [
     "EXE",
     "ISC001", # ruff format conflict
     "COM812", # ruff format conflict
-    "TD003", # Missing TODO link
-    "FIX002", # TODO in code
 ]
 
 [tool.ruff.lint.per-file-ignores]

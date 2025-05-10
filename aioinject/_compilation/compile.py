@@ -183,7 +183,7 @@ def _compile_node(
             return _compile_provider_node(node, extensions, is_async=is_async)
         case IterableNode():
             return _compile_iterable_node(node)
-        case _:
+        case _:  # pragma: no cover
             typing.assert_never(node)
 
 
@@ -210,7 +210,7 @@ def compile_fn(  # noqa: C901
                 namespace[f"{create_var_name(node)}_type"] = node.type_
             case IterableNode():
                 pass
-            case _:
+            case _:  # pragma: no cover
                 typing.assert_never(node)
 
     parts = []
@@ -222,7 +222,7 @@ def compile_fn(  # noqa: C901
                 used_scopes.add(node.provider.info.scope)
             case IterableNode():
                 pass
-            case _:
+            case _:  # pragma: no cover
                 typing.assert_never(node)
 
     for scope in used_scopes:

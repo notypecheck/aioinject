@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import collections
 import contextlib
-import functools
 import inspect
 import sys
 import types
@@ -147,13 +146,14 @@ def unwrap_annotated(type_hint: Any) -> tuple[type[object], tuple[Any, ...]]:
     return dep_type, tuple(args)
 
 
-@functools.cache
 def is_iterable_generic_collection(type_: Any) -> bool:
     if not (origin := typing.get_origin(type_)):
         return False
-    return collections.abc.Iterable in inspect.getmro(origin) or issubclass(
-        origin, collections.abc.Iterable
-    )
+
+    is_collection = collections.abc.Iterable in inspect.getmro(
+        origin
+    ) or issubclass(origin, collections.abc.Iterable)
+    return bool(is_collection and typing.get_args(type_))
 
 
 def is_generic_alias(type_: Any) -> TypeGuard[GenericAlias]:

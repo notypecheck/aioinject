@@ -66,7 +66,7 @@ def _get_orig_bases(type_: type) -> tuple[type, ...] | None:
 def generic_args_map(type_: type[object]) -> dict[str, type[object]]:  # noqa: C901
     if is_generic_alias(type_):
         if not (parameters := getattr(type_.__origin__, "__parameters__", ())):
-            return {}
+            return {}  # pragma: no cover
 
         params: dict[str, Any] = {
             param.__name__: param for param in parameters
@@ -173,7 +173,7 @@ def _resolve_node(type_: type[Any], registry: Registry) -> AnyNode:
     try:
         provider = registry.get_provider(type_)
     except ProviderNotFoundError:
-        if not is_iterable_generic_collection(type_):
+        if not is_iterable_generic_collection(type_):  # pragma: no cover
             raise
 
         inner_type = typing.get_args(type_)[0]

@@ -34,7 +34,7 @@ class Scoped(Provider[T]):
     def provide(self, kwargs: Mapping[str, Any]) -> object:
         return self.implementation(**kwargs)
 
-    def __repr__(self) -> str:
+    def __repr__(self) -> str:  # pragma: no cover
         return f"{self.__class__.__name__}({self.implementation=}, {self.interface=})"
 
     @functools.cached_property

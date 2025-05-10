@@ -10,12 +10,6 @@ class Dependency(Generic[T]):
     name: str
     type_: type[T]
 
-    def with_type(self, type_: type[T]) -> "Dependency[T]":
-        return Dependency(name=self.name, type_=type_)
-
-    def __hash__(self) -> int:
-        return hash((self.name, self.type_))
-
 
 @dataclasses.dataclass(slots=True, kw_only=True)
 class CompilationDirective:

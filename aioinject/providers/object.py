@@ -25,7 +25,7 @@ class Object(Provider[T]):
     ) -> T:
         return self.implementation
 
-    def __repr__(self) -> str:
+    def __repr__(self) -> str:  # pragma: no cover
         return f"{self.__class__.__name__}({self.implementation=}, {self.interface=})"
 
 
