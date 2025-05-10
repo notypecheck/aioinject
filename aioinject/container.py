@@ -58,7 +58,9 @@ class Extensions:
             e for e in self._extensions if isinstance(e, OnInitExtension)
         ]
         self.lifespan = [
-            e for e in self._extensions if isinstance(e, LifespanExtension)
+            e
+            for e in self._extensions
+            if isinstance(e, LifespanExtension | LifespanSyncExtension)
         ]
         self.lifespan_sync = [
             e for e in self._extensions if isinstance(e, LifespanSyncExtension)
@@ -250,13 +252,14 @@ class Container(_BaseContainer):
 
     async def __aenter__(self) -> Self:
         for extension in self.extensions.lifespan:
-            await self.root.exit_stack.enter_async_context(
-                extension.lifespan(self)
-            )
-        for sync_extension in self.extensions.lifespan_sync:
-            self.root.exit_stack.enter_context(
-                sync_extension.lifespan_sync(self)
-            )
+            if isinstance(extension, LifespanExtension):
+                await self.root.exit_stack.enter_async_context(
+                    extension.lifespan(self)
+                )
+            if isinstance(extension, LifespanSyncExtension):
+                self.root.exit_stack.enter_context(
+                    extension.lifespan_sync(self)
+                )
 
         return self
 
