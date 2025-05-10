@@ -28,8 +28,11 @@ def _find_strawberry_info_parameter(
         if is_generic_alias(annotation):
             annotation = typing.get_origin(annotation)
 
-        if issubclass(annotation, strawberry.Info):
-            return p
+        try:
+            if issubclass(annotation, strawberry.Info):
+                return p
+        except TypeError:
+            continue
     return None
 
 
