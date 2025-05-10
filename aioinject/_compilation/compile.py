@@ -184,7 +184,7 @@ def _compile_node(
         case IterableNode():
             return _compile_iterable_node(node)
         case _:  # pragma: no cover
-            typing.assert_never(node)
+            typing.assert_never(node)  # type: ignore[unreachable]
 
 
 def compile_fn(  # noqa: C901
@@ -211,7 +211,7 @@ def compile_fn(  # noqa: C901
             case IterableNode():
                 pass
             case _:  # pragma: no cover
-                typing.assert_never(node)
+                typing.assert_never(node)  # type: ignore[unreachable]
 
     parts = []
 
@@ -223,7 +223,7 @@ def compile_fn(  # noqa: C901
             case IterableNode():
                 pass
             case _:  # pragma: no cover
-                typing.assert_never(node)
+                typing.assert_never(node)  # type: ignore[unreachable]
 
     for scope in used_scopes:
         indent = Indent(indent=1)

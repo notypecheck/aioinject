@@ -1,9 +1,10 @@
 import contextlib
 from collections.abc import AsyncIterator, Generator, Iterator
-from typing import Any, Self
+from typing import Any
 
 import anyio
 import pytest
+from typing_extensions import Self
 
 from aioinject import (
     Container,

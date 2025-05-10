@@ -1,6 +1,7 @@
 import contextlib
 from collections.abc import AsyncIterator
-from typing import Self
+
+from typing_extensions import Self
 
 
 class PropagatedError(Exception):

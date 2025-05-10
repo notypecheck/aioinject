@@ -8,6 +8,9 @@ from aioinject.extensions import OnResolveExtension
 T = TypeVar("T")
 
 
+logger = logging.getLogger(__name__)
+
+
 class MyExtension(OnResolveExtension):
     async def on_resolve(
         self,
@@ -15,4 +18,4 @@ class MyExtension(OnResolveExtension):
         provider: Provider[T],
         instance: T,  # noqa: ARG002
     ) -> None:
-        logging.info("%s type was provided!", provider.type_)
+        logger.info("%s type was provided!", provider.type_)

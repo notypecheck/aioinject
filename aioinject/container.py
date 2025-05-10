@@ -5,7 +5,9 @@ import typing
 from collections.abc import Sequence
 from graphlib import TopologicalSorter
 from types import TracebackType
-from typing import Any, Final, Literal, Self, TypeAlias
+from typing import Any, Final, Literal, TypeAlias
+
+from typing_extensions import Self
 
 from aioinject._compilation import (
     CompilationParams,

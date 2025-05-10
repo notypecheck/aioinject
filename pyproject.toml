@@ -27,26 +27,24 @@ benchmark = [
     "rodi>=2.0.8",
 ]
 dev = [
-    "aiogram>=3.18.0",
-    "anyio>=4.8.0",
+    "aiogram>=3.20.0.post0",
+    "anyio>=4.9.0",
     "asgi-lifespan>=2.1.0",
-    "coverage[toml]>=7.6.12",
-    "fastapi>=0.115.11",
-    "litestar>=2.15.1",
+    "coverage[toml]>=7.8.0",
+    "fastapi>=0.115.12",
+    "litestar>=2.16.0",
     "mkdocs>=1.6.1",
-    "mkdocs-material>=9.6.7",
+    "mkdocs-material>=9.6.13",
     "mypy>=1.15.0",
-    "pydantic-settings>=2.8.1",
+    "pydantic-settings>=2.9.1",
     "pytest>=8.3.5",
-    "pytest-cov>=6.0.0",
-    "ruff>=0.9.10",
-    "strawberry-graphql>=0.262.1",
-    "trio>=0.29.0",
-    "uvicorn>=0.34.0",
+    "pytest-cov>=6.1.1",
+    "ruff>=0.11.9",
+    "strawberry-graphql>=0.268.0",
+    "trio>=0.30.0",
+    "uvicorn>=0.34.2",
 ]
-tests = [
-    "strawberry-graphql>=0.262.1",
-]
+tests = []
 
 [tool.uv]
 default-groups = "all"
@@ -172,6 +170,7 @@ ban-relative-imports = "all"
 
 
 [tool.mypy]
+python_version = "3.10"
 strict = true
 follow_imports = "normal"
 ignore_missing_imports = false

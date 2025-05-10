@@ -18,6 +18,8 @@ from typing import (
     TypeVar,
 )
 
+from typing_extensions import Self
+
 from aioinject.errors import CannotDetermineReturnTypeError
 from aioinject.scope import BaseScope
 
@@ -111,7 +113,7 @@ def _guess_return_type(  # noqa: C901
             return_type = args[0]
 
     # Classmethod returning `typing.Self`
-    if return_type == typing.Self and (
+    if return_type == Self and (
         self_cls := getattr(factory, "__self__", None)
     ):
         if not inspect.isclass(self_cls):

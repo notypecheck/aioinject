@@ -246,4 +246,4 @@ def resolve_dependencies(  # noqa: C901
                     )
                     stack.append(node)
             case _:  # pragma: no cover
-                typing.assert_never(node)
+                typing.assert_never(node)  # type: ignore[unreachable]

@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from types import TracebackType
-from typing import TYPE_CHECKING, Any, Self
+from typing import TYPE_CHECKING, Any
+
+from typing_extensions import Self
 
 from aioinject.context import ProviderRecord
 from aioinject.extensions.providers import ProviderInfo

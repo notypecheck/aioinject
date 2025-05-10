@@ -7,7 +7,9 @@ import threading
 from collections.abc import Callable
 from contextlib import AbstractAsyncContextManager, AbstractContextManager
 from types import TracebackType
-from typing import TYPE_CHECKING, Final, Generic, Self
+from typing import TYPE_CHECKING, Final, Generic
+
+from typing_extensions import Self
 
 from aioinject.scope import BaseScope, next_scope
 
