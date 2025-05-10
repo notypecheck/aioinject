@@ -1,8 +1,7 @@
 import dataclasses
-from functools import cached_property
 from typing import Generic
 
-from aioinject._types import T, is_iterable_generic_collection
+from aioinject._types import T
 from aioinject.scope import BaseScope
 
 
@@ -46,7 +45,3 @@ class ProviderInfo(Generic[T]):
     dependencies: tuple[Dependency[object], ...]
     scope: BaseScope
     compilation_directives: tuple[CompilationDirective, ...]
-
-    @cached_property
-    def is_iterable(self) -> bool:
-        return is_iterable_generic_collection(self.interface)  # type: ignore[arg-type]

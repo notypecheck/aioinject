@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import dataclasses
+import typing
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any, TypeVar
 
@@ -8,7 +9,7 @@ from aioinject._compilation.naming import (
     create_var_name,
     generate_factory_kwargs,
 )
-from aioinject._compilation.resolve import ProviderNode
+from aioinject._compilation.resolve import AnyNode, IterableNode, ProviderNode
 from aioinject._compilation.util import Indent
 from aioinject._types import CompiledFn
 from aioinject.extensions.providers import (
@@ -23,7 +24,6 @@ from aioinject.scope import BaseScope
 
 if TYPE_CHECKING:
     from aioinject.container import Extensions, Registry
-from aioinject.context import ProviderRecord
 
 
 __all__ = ["CompilationParams", "compile_fn"]
@@ -31,8 +31,8 @@ __all__ = ["CompilationParams", "compile_fn"]
 
 @dataclasses.dataclass
 class CompilationParams:
-    root: ProviderNode
-    nodes: Sequence[ProviderNode]
+    root: AnyNode
+    nodes: Sequence[AnyNode]
     scopes: type[BaseScope]
 
 
@@ -87,9 +87,8 @@ def get_directive(
     )
 
 
-def _compile_provider(  # noqa: C901
+def _compile_provider_node(  # noqa: C901
     node: ProviderNode,
-    provider: ProviderRecord[Any],
     extensions: Extensions,
     *,
     is_async: bool,
@@ -98,6 +97,8 @@ def _compile_provider(  # noqa: C901
 
     kwargs = generate_factory_kwargs(node.dependencies)
     indent = Indent(indent=1)
+
+    provider = node.provider
 
     cache_directive = get_directive(provider.info, CacheDirective)
     resolve_directive = get_directive(provider.info, ResolveDirective)
@@ -163,7 +164,30 @@ def _compile_provider(  # noqa: C901
     return parts
 
 
-def compile_fn(
+def _compile_iterable_node(
+    node: IterableNode,
+) -> list[str]:
+    deps = ", ".join(f"{dep.name}_instance" for dep in node.dependencies)
+    template = f"    {node.name}_instance = [{deps}]\n"
+    return [template]
+
+
+def _compile_node(
+    node: AnyNode,
+    extensions: Extensions,
+    *,
+    is_async: bool,
+) -> list[str]:
+    match node:
+        case ProviderNode():
+            return _compile_provider_node(node, extensions, is_async=is_async)
+        case IterableNode():
+            return _compile_iterable_node(node)
+        case _:
+            typing.assert_never(node)
+
+
+def compile_fn(  # noqa: C901
     params: CompilationParams,
     registry: Registry,
     extensions: Extensions,
@@ -176,17 +200,30 @@ def compile_fn(
         **registry.type_context,
     }
     for node in params.nodes:
-        provider = registry.get_provider(node.type_)
-        namespace[f"{create_var_name(node)}_provider"] = provider.provider
-        namespace[f"{create_var_name(node)}_record"] = provider
-        namespace[f"{create_var_name(node)}_type"] = node.type_
+        match node:
+            case ProviderNode():
+                provider = node.provider
+                namespace[f"{create_var_name(node)}_provider"] = (
+                    provider.provider
+                )
+                namespace[f"{create_var_name(node)}_record"] = provider
+                namespace[f"{create_var_name(node)}_type"] = node.type_
+            case IterableNode():
+                pass
+            case _:
+                typing.assert_never(node)
 
     parts = []
 
     used_scopes = set()
     for node in params.nodes:
-        provider = registry.get_provider(node.type_)
-        used_scopes.add(provider.info.scope)
+        match node:
+            case ProviderNode():
+                used_scopes.add(node.provider.info.scope)
+            case IterableNode():
+                pass
+            case _:
+                typing.assert_never(node)
 
     for scope in used_scopes:
         indent = Indent(indent=1)
@@ -200,9 +237,10 @@ def compile_fn(
         if any(
             directive.is_context_manager
             for node in params.nodes
-            if (
+            if isinstance(node, ProviderNode)
+            and (
                 directive := get_directive(
-                    registry.get_provider(node.type_).info, ResolveDirective
+                    node.provider.info, ResolveDirective
                 )
             )
         ):
@@ -217,10 +255,7 @@ def compile_fn(
     namespace.update({f"{scope.name}_scope": scope for scope in used_scopes})
 
     for node in params.nodes:
-        provider = registry.get_provider(node.type_)
-        parts.extend(
-            _compile_provider(node, provider, extensions, is_async=is_async)
-        )
+        parts.extend(_compile_node(node, extensions, is_async=is_async))
 
     body = "".join(parts)
     return_var_name = create_var_name(params.root)

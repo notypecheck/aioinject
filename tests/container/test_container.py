@@ -4,6 +4,7 @@ import pytest
 from pydantic_settings import BaseSettings
 
 from aioinject import Container, Context, Scoped
+from aioinject.errors import ProviderNotFoundError
 from aioinject.providers import Provider
 from aioinject.providers.object import Object
 from tests.testservices import AbstractImplA, AbstractImplB
@@ -90,7 +91,7 @@ def test_can_retrieve_multiple_providers(container: Container) -> None:
 
 def test_missing_provider() -> None:
     container = Container()
-    with pytest.raises(ValueError) as exc_info:  # noqa: PT011
+    with pytest.raises(ProviderNotFoundError) as exc_info:
         assert container.registry.get_provider(AbstractImplA)
 
     msg = f"Providers for type {AbstractImplA.__qualname__} not found"

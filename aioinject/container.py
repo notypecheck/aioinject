@@ -12,12 +12,11 @@ from aioinject._compilation import (
     compile_fn,
 )
 from aioinject._compilation.resolve import (
-    ProviderNode,
-    get_generic_parameter_map,
     resolve_dependencies,
 )
 from aioinject._types import CompiledFn, SyncCompiledFn, T, get_generic_origin
 from aioinject.context import Context, ProviderRecord, SyncContext
+from aioinject.errors import ProviderNotFoundError
 from aioinject.extensions import (
     Extension,
     LifespanExtension,
@@ -141,7 +140,7 @@ class Registry:
             return providers
 
         err_msg = f"Providers for type {type_.__name__} not found"
-        raise ValueError(err_msg)
+        raise ProviderNotFoundError(err_msg)
 
     def get_provider(self, type_: type[T]) -> ProviderRecord[T]:
         return self.get_providers(type_)[0]
@@ -170,22 +169,7 @@ class Registry:
     ) -> CompiledFn[T] | SyncCompiledFn[T]:
         key = (type_, is_async)
         if key not in self.compilation_cache:
-            provider = self.get_provider(type_)
-
-            generic_args_map = get_generic_parameter_map(
-                provided_type=type_,
-                dependencies=provider.info.dependencies,
-            )
-            root = ProviderNode(
-                type_=type_,
-                is_iterable=False,
-                dependencies=tuple(
-                    dep.with_type(generic_args_map.get(dep.name, dep.type_))
-                    for dep in provider.info.dependencies
-                ),
-                name="root",
-            )
-            result = list(resolve_dependencies(root, registry=self))
+            result = list(resolve_dependencies(root_type=type_, registry=self))
             nodes_by_type = {node.type_: node for node in result}
             graph = {
                 node: [nodes_by_type[dep.type_] for dep in node.dependencies]
@@ -197,7 +181,7 @@ class Registry:
 
             self.compilation_cache[key] = compile_fn(
                 CompilationParams(
-                    root=root,
+                    root=result[-1],
                     nodes=result,
                     scopes=self.scopes,
                 ),
