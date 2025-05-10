@@ -157,7 +157,6 @@ async def test_can_resolve_generic_class_without_parameters() -> None:
         assert instance.a == MEANING_OF_LIFE_INT
 
 
-@pytest.mark.xfail
 async def test_can_resolve_generic_iterable() -> None:
     class MiddlewareBase(abc.ABC, Generic[ReqT, ResT]):
         @abc.abstractmethod
@@ -200,7 +199,7 @@ async def test_can_resolve_generic_iterable() -> None:
     )
 
     async with container.context() as ctx:
-        instances = await ctx.resolve_iterable(MiddlewareBase[int, int])  # type: ignore[attr-defined]
+        instances = await ctx.resolve(list[MiddlewareBase[int, int]])
         assert len(instances) == 2  # noqa: PLR2004
         assert isinstance(instances[0], SecondMiddleware)
         assert isinstance(instances[1], ThirdMiddleware)

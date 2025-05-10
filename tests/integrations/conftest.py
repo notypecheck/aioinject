@@ -9,7 +9,7 @@ import aioinject
 
 @pytest.fixture
 def provided_value() -> int:
-    return random.randint(1, 1_000_000)  # noqa: S311
+    return random.randint(1, 1_000_000)
 
 
 class NumberService:

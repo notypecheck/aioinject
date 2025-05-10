@@ -96,40 +96,40 @@ class Registry:
         for provider in providers:
             self._register_one(provider)
 
-    def _register_one(self, provider: Provider[T]) -> None:
+    def find_provider_extension(
+        self, provider: Provider[Any]
+    ) -> ProviderExtension[Any]:
         for ext in self.extensions.providers:
             if ext.supports_provider(provider):
-                info: ProviderInfo[T] = ext.extract(
-                    provider, type_context=self.type_context
-                )
-                if any(
-                    provider.implementation
-                    == existing_provider.provider.implementation
-                    for existing_provider in self.providers.get(
-                        info.interface, []
-                    )
-                ):
-                    msg = (
-                        f"Provider for type {info.interface} with same "
-                        f"implementation already registered"
-                    )
-                    raise ValueError(msg)
+                return ext
+        raise ValueError
 
-                self.providers[info.interface].append(
-                    ProviderRecord(
-                        provider=provider,
-                        info=info,
-                        ext=ext,
-                    )
+    def _register_one(self, provider: Provider[T]) -> None:
+        ext = self.find_provider_extension(provider)
+        if ext.supports_provider(provider):
+            info: ProviderInfo[T] = ext.extract(
+                provider, type_context=self.type_context
+            )
+            if any(
+                provider.implementation
+                == existing_provider.provider.implementation
+                for existing_provider in self.providers.get(info.interface, [])
+            ):
+                msg = (
+                    f"Provider for type {info.interface} with same "
+                    f"implementation already registered"
                 )
-                if class_name := info.type_.__name__:
-                    self.type_context[class_name] = get_generic_origin(
-                        info.type_
-                    )
+                raise ValueError(msg)
 
-                break
-        else:
-            raise ValueError
+            self.providers[info.interface].append(
+                ProviderRecord(
+                    provider=provider,
+                    info=info,
+                    ext=ext,
+                )
+            )
+            if class_name := info.type_.__name__:
+                self.type_context[class_name] = get_generic_origin(info.type_)
 
     def get_providers(self, type_: type[T]) -> Sequence[ProviderRecord[T]]:
         if providers := self.providers.get(type_):
