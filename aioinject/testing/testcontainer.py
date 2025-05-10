@@ -50,7 +50,7 @@ class _Override:
         self._exit()
 
     def _enter(self) -> None:
-        self.registry.compilation_cache.clear()
+        self._clear()
 
         self.prev = self.registry.providers.get(self.info.interface)
 
@@ -66,7 +66,11 @@ class _Override:
         if self.prev is not None:
             self.registry.providers[self.info.interface] = self.prev
 
+        self._clear()
+
+    def _clear(self) -> None:
         self.registry.compilation_cache.clear()
+        self.container.root.cache.clear()
 
 
 class TestContainer:
