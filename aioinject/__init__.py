@@ -1,6 +1,6 @@
 from aioinject.container import Container, SyncContainer
 from aioinject.context import Context, SyncContext
-from aioinject.decorators import Injected
+from aioinject.decorators import Inject, Injected
 from aioinject.providers import Provider
 from aioinject.providers.context import FromContext
 from aioinject.providers.object import Object
@@ -12,6 +12,8 @@ __all__ = [
     "Container",
     "Context",
     "FromContext",
+    "Inject",
+    "Injected",
     "Injected",
     "Object",
     "Provider",
