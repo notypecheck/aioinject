@@ -13,8 +13,11 @@ def provided_value() -> int:
 
 
 class NumberService:
-    async def get_number(self, number: int) -> int:
-        return number
+    def __init__(self, value: int) -> None:
+        self._value = value
+
+    def get_number(self) -> int:
+        return self._value
 
 
 class ScopedNode(TypedDict):

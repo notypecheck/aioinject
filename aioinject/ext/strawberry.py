@@ -31,7 +31,7 @@ def _find_strawberry_info_parameter(
         try:
             if issubclass(annotation, strawberry.Info):
                 return p
-        except TypeError:
+        except TypeError:  # pragma: no cover
             continue
     return None
 
