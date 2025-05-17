@@ -105,7 +105,7 @@ def _compile_provider_node(  # noqa: C901
     lock_directive = get_directive(provider.info, LockDirective)
 
     common_context = {
-        "dependency": create_var_name(node),
+        "dependency": node.name,
         "kwargs": kwargs,
         "scope_name": f"{provider.info.scope.name}_scope",
     }

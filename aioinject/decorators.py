@@ -74,7 +74,7 @@ def clear_wrapper(wrapper: _F, args: list[str]) -> _F:
 
 
 def _find_inject_marker_in_annotated_args(
-    args: tuple[Any, ...],
+    args: Sequence[Any],
 ) -> Inject | None:
     for arg in args:
         try:

@@ -3,7 +3,7 @@ import inspect
 from collections.abc import Mapping
 from typing import Any
 
-from aioinject._types import FactoryType, T, _guess_return_type
+from aioinject._types import FactoryResult, FactoryType, T, _guess_return_type
 from aioinject.dependencies import collect_parameters
 from aioinject.errors import CannotDetermineReturnTypeError
 from aioinject.extensions import ProviderExtension
@@ -31,7 +31,7 @@ class Scoped(Provider[T]):
         self.interface = interface
         self.scope = scope or self._DEFAULT_SCOPE
 
-    def provide(self, kwargs: Mapping[str, Any]) -> object:
+    def provide(self, kwargs: Mapping[str, Any]) -> FactoryResult[T]:
         return self.implementation(**kwargs)
 
     def __repr__(self) -> str:  # pragma: no cover

@@ -1,7 +1,7 @@
 from collections.abc import Mapping
 from typing import Any
 
-from aioinject._types import T
+from aioinject._types import FactoryResult, T
 from aioinject.extensions import ProviderExtension
 from aioinject.extensions.providers import (
     CacheDirective,
@@ -17,7 +17,7 @@ class FromContext(Provider[T]):
         self.implementation = type_
         self.scope = scope
 
-    def provide(self, kwargs: dict[str, Any]) -> object:
+    def provide(self, kwargs: dict[str, Any]) -> FactoryResult[T]:
         raise NotImplementedError
 
 

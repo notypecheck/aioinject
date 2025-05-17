@@ -3,7 +3,6 @@ from __future__ import annotations
 import collections
 import typing
 from collections.abc import Sequence
-from graphlib import TopologicalSorter
 from types import TracebackType
 from typing import Any, Final, Literal, TypeAlias
 
@@ -15,6 +14,7 @@ from aioinject._compilation import (
 )
 from aioinject._compilation.resolve import (
     resolve_dependencies,
+    sort_nodes,
 )
 from aioinject._types import CompiledFn, SyncCompiledFn, T, get_generic_origin
 from aioinject.context import Context, ProviderRecord, SyncContext
@@ -104,7 +104,9 @@ class Registry:
         for ext in self.extensions.providers:
             if ext.supports_provider(provider):
                 return ext
-        raise ValueError
+
+        err_msg = f"ProviderExtension for provider {provider!r} not found."
+        raise ValueError(err_msg)
 
     def _register_one(self, provider: Provider[T]) -> None:
         ext = self.find_provider_extension(provider)
@@ -176,14 +178,7 @@ class Registry:
             result = tuple(
                 resolve_dependencies(root_type=type_, registry=self)
             )
-            nodes_by_type = {node.type_: node for node in result}
-            graph = {
-                node: [nodes_by_type[dep.type_] for dep in node.dependencies]
-                for node in result
-            }
-
-            sorter = TopologicalSorter(graph)
-            result = tuple(sorter.static_order())
+            result = tuple(sort_nodes(reversed(result)))
 
             self.compilation_cache[key] = compile_fn(
                 CompilationParams(

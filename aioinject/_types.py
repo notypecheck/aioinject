@@ -6,7 +6,7 @@ import inspect
 import sys
 import types
 import typing
-from collections.abc import Awaitable, Callable, Iterator, Mapping
+from collections.abc import Awaitable, Callable, Iterator, Mapping, Sequence
 from inspect import isclass
 from types import GenericAlias
 from typing import (
@@ -31,14 +31,14 @@ T = TypeVar("T")
 P = ParamSpec("P")
 T_co = TypeVar("T_co", covariant=True)
 
-FactoryType: TypeAlias = (
-    type[T]
-    | Callable[..., T]
-    | Callable[..., collections.abc.Awaitable[T]]
-    | Callable[..., collections.abc.Coroutine[Any, Any, T]]
-    | Callable[..., collections.abc.Iterator[T]]
-    | Callable[..., collections.abc.AsyncIterator[T]]
+FactoryResult: TypeAlias = (
+    T
+    | collections.abc.Awaitable[T]
+    | collections.abc.Coroutine[Any, Any, T]
+    | collections.abc.Iterator[T]
+    | collections.abc.AsyncIterator[T]
 )
+FactoryType: TypeAlias = type[T] | Callable[..., FactoryResult[T]]
 
 _GENERATORS = {
     collections.abc.Generator,
@@ -137,14 +137,11 @@ def remove_annotation(
         annotations[name] = annotation
 
 
-def unwrap_annotated(type_hint: Any) -> tuple[type[object], tuple[Any, ...]]:
+def unwrap_annotated(type_hint: Any) -> tuple[type[object], Sequence[Any]]:
     if typing.get_origin(type_hint) is not typing.Annotated:
         return type_hint, ()
 
-    try:
-        dep_type, *args = typing.get_args(type_hint)
-    except ValueError:
-        dep_type, args = type_hint, []
+    dep_type, *args = typing.get_args(type_hint)
     return dep_type, tuple(args)
 
 

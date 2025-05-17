@@ -1,5 +1,3 @@
-import random
-
 from aioinject import Container, Object, Scoped
 from aioinject.testing import TestContainer
 
@@ -10,7 +8,7 @@ async def test_override() -> None:
 
     testcontainer = TestContainer(container)
 
-    override = random.randint(1, 1000)
+    override = 42
 
     async with (
         container.context() as ctx,
@@ -20,3 +18,10 @@ async def test_override() -> None:
 
     async with container.context() as ctx:
         assert await ctx.resolve(int) == 0
+
+    # Test sync override
+    async with (
+        container.context() as ctx,
+    ):
+        with testcontainer.override(Object(override)):
+            assert await ctx.resolve(int) is override

@@ -9,8 +9,8 @@ if TYPE_CHECKING:
     from aioinject._compilation.resolve import AnyNode, BoundDependency
 
 
-def create_var_name(dependency: AnyNode) -> str:
-    return dependency.name
+def create_var_name(node: AnyNode) -> str:
+    return node.name
 
 
 def make_dependency_name(type_: type[object]) -> str:
@@ -26,9 +26,8 @@ def make_dependency_name(type_: type[object]) -> str:
 def generate_factory_kwargs(
     dependencies: Sequence[BoundDependency[object]],
 ) -> str:
-    kwargs = {
-        dependency.name: f"{make_dependency_name(dependency.type_)}_instance"
+    joined = ", ".join(
+        f'"{dependency.name}": {dependency.variable_name}_instance'
         for dependency in dependencies
-    }
-    joined = ", ".join(f'"{k}": {v}' for k, v in kwargs.items())
+    )
     return "{" + joined + "}"

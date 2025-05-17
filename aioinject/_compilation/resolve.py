@@ -4,13 +4,14 @@ import collections
 import dataclasses
 import inspect
 import typing
-from collections.abc import Iterator, Sequence
+from collections.abc import Iterable, Iterator, Sequence
 from typing import TYPE_CHECKING, Any, Generic
 
 from aioinject._compilation.naming import make_dependency_name
 from aioinject._types import T, is_generic_alias
 from aioinject.context import ProviderRecord
 from aioinject.errors import ProviderNotFoundError
+from aioinject.providers.scoped import Transient
 
 
 if TYPE_CHECKING:
@@ -29,6 +30,7 @@ def is_iterable_generic_collection(type_: Any) -> bool:
 
 @dataclasses.dataclass(slots=True, kw_only=True)
 class BoundDependency(Generic[T]):
+    variable_name: str
     name: str
     type_: type[T]
     provider: ProviderRecord[T]
@@ -36,10 +38,10 @@ class BoundDependency(Generic[T]):
 
 @dataclasses.dataclass(slots=True, kw_only=True)
 class ProviderNode:
-    provider: ProviderRecord[object]
-    type_: type[Any]
-    dependencies: tuple[BoundDependency[object], ...]
     name: str
+    type_: type[Any]
+    provider: ProviderRecord[object]
+    dependencies: tuple[BoundDependency[object], ...]
 
     def __hash__(self) -> int:
         return hash((self.name, False))
@@ -47,10 +49,10 @@ class ProviderNode:
 
 @dataclasses.dataclass(slots=True, kw_only=True)
 class IterableNode:
+    name: str
     type_: type[Any]
     inner_type: type[Any]
     dependencies: tuple[BoundDependency[object], ...]
-    name: str
 
     def __hash__(self) -> int:
         return hash((self.name, True))
@@ -123,7 +125,10 @@ def get_generic_parameter_map(
 
 
 def _resolve_provider_node_dependencies(
-    type_: type[object], provider: ProviderRecord[object], registry: Registry
+    type_: type[object],
+    node_name: str,
+    provider: ProviderRecord[object],
+    registry: Registry,
 ) -> tuple[BoundDependency[Any], ...]:
     generic_args_map = get_generic_parameter_map(
         provided_type=type_,
@@ -159,9 +164,16 @@ def _resolve_provider_node_dependencies(
             if not is_iterable
             else dependency_type
         )
+        variable_name = make_dependency_name(resolved_type)  # type: ignore[arg-type]
+        if isinstance(dependency_provider.provider, Transient):
+            variable_name = (
+                f"{node_name}_{provider_dependency.name}_{variable_name}"
+            )
+
         dependency = BoundDependency(
-            type_=resolved_type,  # type: ignore[arg-type]
+            variable_name=variable_name,
             name=provider_dependency.name,
+            type_=resolved_type,  # type: ignore[arg-type]
             provider=dependency_provider,
         )
         dependencies.append(dependency)
@@ -169,7 +181,7 @@ def _resolve_provider_node_dependencies(
     return tuple(dependencies)
 
 
-def _resolve_node(type_: type[Any], registry: Registry) -> AnyNode:
+def _resolve_node(type_: type[Any], name: str, registry: Registry) -> AnyNode:
     try:
         provider = registry.get_provider(type_)
     except ProviderNotFoundError:
@@ -182,10 +194,11 @@ def _resolve_node(type_: type[Any], registry: Registry) -> AnyNode:
         return IterableNode(
             type_=type_,
             inner_type=inner_type,
-            name=make_dependency_name(type_),
+            name=name,
             dependencies=tuple(
                 BoundDependency(
                     name=make_dependency_name(provider.info.type_),
+                    variable_name=make_dependency_name(provider.info.type_),
                     type_=provider.info.type_,
                     provider=provider,
                 )
@@ -198,10 +211,13 @@ def _resolve_node(type_: type[Any], registry: Registry) -> AnyNode:
     )
     return ProviderNode(
         type_=resolved_type,
-        name=make_dependency_name(resolved_type),
+        name=name,
         provider=provider,
         dependencies=_resolve_provider_node_dependencies(
-            resolved_type, provider, registry
+            type_=resolved_type,
+            node_name=name,
+            provider=provider,
+            registry=registry,
         ),
     )
 
@@ -210,40 +226,77 @@ def resolve_dependencies(  # noqa: C901
     root_type: type[Any],
     registry: Registry,
 ) -> Iterator[AnyNode]:
-    stack = [_resolve_node(root_type, registry=registry)]
+    stack = [
+        _resolve_node(
+            root_type, name=make_dependency_name(root_type), registry=registry
+        )
+    ]
     seen = set()
-
     while stack:
         node = stack.pop()
         if node in seen:
             continue
 
         seen.add(node)
+
         yield node
 
         match node:
             case ProviderNode():
-                provider = node.provider
                 generic_args_map = get_generic_parameter_map(
-                    node.type_, provider.info.dependencies
+                    node.type_, node.provider.info.dependencies
                 )
-                for dependency in provider.info.dependencies:
-                    dependency_type = generic_args_map.get(
-                        dependency.name, dependency.type_
+                for dependency in node.dependencies:
+                    orig_dependency = next(
+                        dep
+                        for dep in node.provider.info.dependencies
+                        if dep.name == dependency.name
                     )
-                    stack.append(_resolve_node(dependency_type, registry))
+                    dependency_type = generic_args_map.get(
+                        dependency.name, orig_dependency.type_
+                    )
+                    stack.append(
+                        _resolve_node(
+                            dependency_type, dependency.variable_name, registry
+                        )
+                    )
 
             case IterableNode():
                 providers = registry.get_providers(node.inner_type)
                 for provider in providers:
-                    node = ProviderNode(
+                    new_node = ProviderNode(
                         provider=provider,
                         name=make_dependency_name(provider.info.type_),
                         type_=provider.info.type_,
                         dependencies=_resolve_provider_node_dependencies(
-                            node.type_, provider, registry
+                            type_=node.type_,
+                            node_name=node.name,
+                            provider=provider,
+                            registry=registry,
                         ),
                     )
-                    stack.append(node)
+                    stack.append(new_node)
             case _:  # pragma: no cover
                 typing.assert_never(node)  # type: ignore[unreachable]
+
+
+def sort_nodes(nodes: Iterable[AnyNode]) -> Iterator[AnyNode]:
+    postponed_nodes = set()
+    seen_types = set()
+    queue: collections.deque[AnyNode] = collections.deque()
+    for node in nodes:
+        queue.appendleft(node)
+
+    while queue:
+        node = queue.pop()
+
+        dependencies_satisfied = all(
+            dep.type_ in seen_types for dep in node.dependencies
+        )
+        if not dependencies_satisfied:
+            postponed_nodes.add(node)
+            queue.insert(-1, node)
+            continue
+
+        yield node
+        seen_types.add(node.type_)

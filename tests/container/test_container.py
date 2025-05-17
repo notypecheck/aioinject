@@ -1,9 +1,11 @@
 from collections.abc import Mapping
+from typing import Any, final
 
 import pytest
 from pydantic_settings import BaseSettings
 
 from aioinject import Container, Context, Scoped
+from aioinject._types import FactoryResult, T
 from aioinject.errors import ProviderNotFoundError
 from aioinject.providers import Provider
 from aioinject.providers.object import Object
@@ -96,3 +98,24 @@ def test_missing_provider() -> None:
 
     msg = f"Providers for type {AbstractImplA.__qualname__} not found"
     assert str(exc_info.value) == msg
+
+
+def test_no_provider_extension() -> None:
+    @final
+    class CustomProvider(Provider[T]):
+        implementation = int
+
+        def provide(self, kwargs: dict[str, Any]) -> FactoryResult[T]:
+            raise NotImplementedError
+
+        def __repr__(self) -> str:
+            return f"{self.__class__.__name__}()"
+
+    container = Container()
+    with pytest.raises(ValueError) as exc_info:  # noqa: PT011
+        container.register(CustomProvider())
+
+    assert (
+        str(exc_info.value)
+        == "ProviderExtension for provider CustomProvider() not found."
+    )
