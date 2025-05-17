@@ -10,6 +10,7 @@ jobs:
           - 3.11.12
           - 3.12.10
           - 3.13.3
+      fail-fast: false
 
     steps:
       - uses: actions/checkout@v4
