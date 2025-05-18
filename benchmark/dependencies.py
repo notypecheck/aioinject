@@ -10,18 +10,18 @@ class Session:
 
 
 @contextlib.asynccontextmanager
-async def create_session() -> AsyncIterator[Session]:
+async def create_session_cm() -> AsyncIterator[Session]:
     yield Session()
 
 
-async def create_session_fastapi() -> AsyncIterator[Session]:
+async def create_session() -> AsyncIterator[Session]:
     yield Session()
 
 
 class RepositoryA:
     def __init__(
         self,
-        session: Annotated[Session, Depends(create_session_fastapi)],
+        session: Annotated[Session, Depends(create_session)],
     ) -> None:
         self._session = session
 
@@ -29,7 +29,7 @@ class RepositoryA:
 class RepositoryB:
     def __init__(
         self,
-        session: Annotated[Session, Depends(create_session_fastapi)],
+        session: Annotated[Session, Depends(create_session)],
     ) -> None:
         self._session = session
 

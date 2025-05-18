@@ -9,12 +9,12 @@ from benchmark.dependencies import (
     ServiceA,
     ServiceB,
     UseCase,
-    create_session,
+    create_session_cm,
 )
 
 
 providers: Sequence[Provider[Any]] = [
-    aioinject.Scoped(create_session),
+    aioinject.Scoped(create_session_cm),
     aioinject.Scoped(RepositoryA),
     aioinject.Scoped(RepositoryB),
     aioinject.Scoped(ServiceA),

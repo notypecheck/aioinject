@@ -295,7 +295,7 @@ def sort_nodes(nodes: Iterable[AnyNode]) -> Iterator[AnyNode]:
         )
         if not dependencies_satisfied:
             postponed_nodes.add(node)
-            queue.insert(-1, node)
+            queue.appendleft(node)
             continue
 
         yield node

@@ -82,7 +82,10 @@ class Context:
             cache=context,
         )
 
-    def add_context(self, context: dict[type[object], object]) -> None:
+    def add_context(
+        self,
+        context: dict[type[object], object],
+    ) -> None:
         for key, value in context.items():
             self.cache[key] = value
 
@@ -137,6 +140,9 @@ class SyncContext:
             cache=context,
         )
 
-    def add_context(self, context: dict[type[object], object]) -> None:
+    def add_context(
+        self,
+        context: dict[type[object], object],
+    ) -> None:  # pragma: no cover
         for key, value in context.items():
             self.cache[key] = value
