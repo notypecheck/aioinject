@@ -79,22 +79,25 @@ class Benchmark:
         results = []
         for benchmark in self.benchmarks:
             for iterations in rounds:
-                benchmark_results = [await self.run_benchmark(benchmark, iterations) for _ in range(5)]
+                benchmark_results = [
+                    await self.run_benchmark(benchmark, iterations)
+                    for _ in range(5)
+                ]
                 best_result = min(benchmark_results, key=lambda r: r.total)
                 results.append(best_result)
 
         return results
 
-    async def run_benchmark(self, benchmark: BenchmarkEntry, rounds: int) -> BenchmarkResult:
+    async def run_benchmark(
+        self, benchmark: BenchmarkEntry, rounds: int
+    ) -> BenchmarkResult:
         extrapolated = (
             benchmark.max_iterations < rounds
             if benchmark.max_iterations
             else False
         )
         actual_rounds = (
-            min(benchmark.max_iterations, rounds)
-            if extrapolated
-            else rounds
+            min(benchmark.max_iterations, rounds) if extrapolated else rounds
         )
         context = BenchmarkContext(rounds=actual_rounds)
         await benchmark.func(context)
