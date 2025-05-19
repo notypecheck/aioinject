@@ -59,7 +59,7 @@ class ProviderExtension(Protocol[_TProvider_contra]):
         self,
         provider: _TProvider_contra,
         type_context: Mapping[str, type[object]],
-    ) -> ProviderInfo[T]: ...
+    ) -> ProviderInfo[Any]: ...
 
 
 @runtime_checkable

@@ -4,7 +4,7 @@ import di
 import di.executors
 import dishka
 import lagom
-import punq
+import punq  # type: ignore[import-untyped]
 import rodi
 from di import bind_by_type
 from di.dependent import Dependent

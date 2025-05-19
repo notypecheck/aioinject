@@ -97,7 +97,9 @@ class Benchmark:
             else False
         )
         actual_rounds = (
-            min(benchmark.max_iterations, rounds) if extrapolated else rounds
+            min(benchmark.max_iterations, rounds)
+            if extrapolated and benchmark.max_iterations
+            else rounds
         )
         context = BenchmarkContext(rounds=actual_rounds)
         await benchmark.func(context)

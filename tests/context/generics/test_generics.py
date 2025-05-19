@@ -98,7 +98,7 @@ async def test_nested_unresolved_generic() -> None:
     obj = SimpleGeneric(MEANING_OF_LIFE_INT)
     container.register(
         Scoped(NestedUnresolvedGeneric),
-        Object(obj, type_=SimpleGeneric),
+        Object(obj, interface=SimpleGeneric),
     )
 
     async with container.context() as ctx:

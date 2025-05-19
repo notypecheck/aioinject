@@ -1,4 +1,4 @@
-import aioinject
+from aioinject import Scoped, Singleton, SyncContainer
 
 
 class Database:
@@ -12,7 +12,7 @@ class Database:
 class UserService:
     def __init__(
         self,
-        database: Database,  # <- Aioinject would try to inject `Database` here
+        database: Database,  # <- `Database` is injected here
     ) -> None:
         self._database = database
 
@@ -23,14 +23,16 @@ class UserService:
         return user
 
 
-container = aioinject.Container()
+container = SyncContainer()
 container.register(
-    aioinject.Singleton(Database),
-    aioinject.Singleton(UserService),
+    Singleton(Database),
+    Scoped(UserService),
 )
 
-with container.sync_context() as ctx:
-    service = ctx.resolve(UserService)
+with (
+    container,  # Singletons are managed
+    container.context() as context,
+):
+    service = context.resolve(UserService)
     user = service.get(1)
-    assert user == "Username"
-    print(user)
+    print(user)  # "Username"

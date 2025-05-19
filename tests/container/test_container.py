@@ -60,8 +60,8 @@ def test_register_unhashable_implementation(
     class ExampleSettings(BaseSettings):
         value: list[str] = []
 
-    container.register(Object([], type_=list[int]))
-    container.register(Object(ExampleSettings(), type_=ExampleSettings))
+    container.register(Object([], interface=list[int]))
+    container.register(Object(ExampleSettings(), interface=ExampleSettings))
 
 
 def test_cant_register_multiple_providers_for_same_type(

@@ -1,13 +1,12 @@
 import uvicorn
 from litestar import Litestar, get
 
-import aioinject
-from aioinject import Injected
+from aioinject import Container, Injected, Object
 from aioinject.ext.litestar import AioInjectPlugin, inject
 
 
-container = aioinject.Container()
-container.register(aioinject.Object(42))
+container = Container()
+container.register(Object(42))
 
 
 @get("/")

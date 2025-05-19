@@ -18,7 +18,6 @@ from aioinject.scope import BaseScope, Scope
 
 
 class Scoped(Provider[T]):
-    _DEFAULT_SCOPE = Scope.request
     cache_ok: bool = True
 
     def __init__(
@@ -29,7 +28,7 @@ class Scoped(Provider[T]):
     ) -> None:
         self.implementation = factory
         self.interface = interface
-        self.scope = scope or self._DEFAULT_SCOPE
+        self.scope = scope
 
     def provide(self, kwargs: Mapping[str, Any]) -> FactoryResult[T]:
         return self.implementation(**kwargs)
@@ -53,15 +52,22 @@ class Scoped(Provider[T]):
 
 
 class Singleton(Scoped[T]):
-    _DEFAULT_SCOPE = Scope.lifetime
+    pass
 
 
 class Transient(Scoped[T]):
-    _DEFAULT_SCOPE = Scope.request
     cache_ok = False
 
 
 class ScopedProviderExtension(ProviderExtension[Scoped[Any]]):
+    def __init__(
+        self,
+        default_singleton_scope: BaseScope = Scope.lifetime,
+        default_scope: BaseScope = Scope.request,
+    ) -> None:
+        self._default_singleton_scope = default_singleton_scope
+        self._default_scope = default_scope
+
     def supports_provider(self, provider: Scoped[object]) -> bool:
         return isinstance(provider, Scoped)
 
@@ -70,6 +76,16 @@ class ScopedProviderExtension(ProviderExtension[Scoped[Any]]):
         provider: Scoped[T],
         type_context: Mapping[str, type[object]],
     ) -> ProviderInfo[T]:
+        scope = (
+            provider.scope
+            if provider.scope is not None
+            else (
+                self._default_singleton_scope
+                if isinstance(provider, Singleton)
+                else self._default_scope
+            )
+        )
+
         dependencies = tuple(
             collect_parameters(
                 dependant=provider.implementation,
@@ -90,7 +106,7 @@ class ScopedProviderExtension(ProviderExtension[Scoped[Any]]):
             interface=provider.interface or actual_type,
             type_=actual_type,
             dependencies=dependencies,
-            scope=provider.scope,
+            scope=scope,
             compilation_directives=(
                 CacheDirective(is_enabled=provider.cache_ok),
                 ResolveDirective(

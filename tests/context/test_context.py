@@ -176,3 +176,10 @@ async def test_context_provider_sync() -> None:
     with container.context({_Session: session}) as ctx:
         repo = ctx.resolve(_Repository)
         assert repo.session is session
+
+
+async def test_latest_registered_interface_is_provided() -> None:
+    container = SyncContainer()
+    container.register(Object(42), Object(0))
+    with container.context() as ctx:
+        assert ctx.resolve(int) == 0

@@ -15,9 +15,9 @@ from aioinject.scope import BaseScope, Scope
 
 
 class Object(Provider[T]):
-    def __init__(self, obj: T, type_: type[T] | None = None) -> None:
+    def __init__(self, obj: T, interface: type[T] | None = None) -> None:
         self.implementation = obj
-        self.interface = type_
+        self.interface = interface
 
     def provide(
         self,

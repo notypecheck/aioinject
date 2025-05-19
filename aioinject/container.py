@@ -149,7 +149,7 @@ class Registry:
         raise ProviderNotFoundError(err_msg)
 
     def get_provider(self, type_: type[T]) -> ProviderRecord[T]:
-        return self.get_providers(type_)[0]
+        return self.get_providers(type_)[-1]
 
     @typing.overload
     def compile(

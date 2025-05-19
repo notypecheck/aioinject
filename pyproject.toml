@@ -4,7 +4,7 @@ version = "0.38.1"
 description = "Async dependency injection library"
 requires-python = ">=3.10"
 authors = [
-    { name = "Doctor", email = "thirvondukr@gmail.com" },
+    { name = "Doctor", email = "notypecheck@gmail.com" },
     { name = "dexofan", email = "fadeddexofan@gmail.com" },
 ]
 readme = "README.md"
@@ -17,8 +17,8 @@ dependencies = [
 ]
 
 [project.urls]
-Documentation = "https://thirvondukr.github.io/aioinject/"
-Repository = "https://github.com/ThirVondukr/aioinject"
+Documentation = "https://notypecheck.github.io/aioinject/"
+Repository = "https://github.com/notypecheck/aioinject"
 
 [dependency-groups]
 benchmark = [
@@ -177,7 +177,6 @@ python_version = "3.10"
 strict = true
 follow_imports = "normal"
 ignore_missing_imports = false
-exclude = "(docs|benchmark)"
 
 allow_redefinition = false
 disallow_any_explicit = false

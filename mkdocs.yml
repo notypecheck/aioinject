@@ -1,18 +1,30 @@
 site_name: Aioinject
 site_description: Async-first python dependency injection library
-repo_url: https://github.com/ThirVondukr/aioinject
+repo_url: https://github.com/notypecheck/aioinject
+
+strict: true
+
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn
+  not_found: warn
 
 nav:
   - About: index.md
+  - Usage Guide: usage-guide.md
   - Providers: providers.md
-  - Context manager dependencies: context-managers.md
   - Extensions: extensions.md
-  - Integrations:
+  - Framework Integrations:
       - Aiogram: integrations/aiogram.md
       - FastAPI: integrations/fastapi.md
       - Litestar: integrations/litestar.md
       - Strawberry GraphQL: integrations/strawberry-graphql.md
-  - Cook Book: cookbook.md
+  - Internals:
+      - Writing Custom Provider Extensions: internals/writing-custom-provider-extensions.md
+      - Code Compilation: internals/code-compilation.md
+  - Benchmarks: benchmarks.md
 
 
 theme:
@@ -36,6 +48,7 @@ theme:
         icon: material/brightness-7
 
 markdown_extensions:
+  - tables
   - pymdownx.highlight:
       anchor_linenums: true
       line_spans: __span
@@ -43,3 +56,4 @@ markdown_extensions:
   - pymdownx.inlinehilite
   - pymdownx.snippets
   - pymdownx.superfences
+  - admonition

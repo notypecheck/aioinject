@@ -44,4 +44,7 @@ async def test_iterable_and_regular_dependency() -> None:
     async with container.context() as context:
         instance = await context.resolve(Dependant)
 
-        assert instance.iterable[0] is instance.interface
+        assert isinstance(instance.iterable[0], _A)
+        assert isinstance(instance.iterable[1], _B)
+
+        assert instance.iterable[1] is instance.interface

@@ -11,7 +11,7 @@ from benchmark.benchmarks import (
     benchmark_rodi,
 )
 from benchmark.lib.bench import Benchmark
-from benchmark.lib.format import print_results
+from benchmark.lib.format import print_markdown_table, print_results
 
 
 async def main() -> None:
@@ -29,6 +29,7 @@ async def main() -> None:
     )
     results = await bench.run(rounds=[100_000])
     print_results(results)
+    print_markdown_table(results)
 
 
 if __name__ == "__main__":
