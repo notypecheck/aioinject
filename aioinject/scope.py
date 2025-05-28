@@ -28,3 +28,7 @@ def next_scope(scopes: type[BaseScope], scope: BaseScope | None) -> BaseScope:
 
     index = members.index(scope)
     return members[index + 1]
+
+
+class CurrentScope:
+    """Special marker to indicate resolving FromContext dependency from current scope."""

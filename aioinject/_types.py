@@ -51,8 +51,8 @@ _ASYNC_GENERATORS = {
 
 ExecutionContext = dict[BaseScope, "Context | SyncContext"]
 
-CompiledFn = Callable[[ExecutionContext], Awaitable[T_co]]
-SyncCompiledFn = Callable[[ExecutionContext], T_co]
+CompiledFn = Callable[[ExecutionContext, BaseScope], Awaitable[T_co]]
+SyncCompiledFn = Callable[[ExecutionContext, BaseScope], T_co]
 
 
 def get_return_annotation(

@@ -11,7 +11,9 @@ from aioinject._compilation.naming import make_dependency_name
 from aioinject._types import T, is_generic_alias
 from aioinject.context import ProviderRecord
 from aioinject.errors import ProviderNotFoundError
+from aioinject.providers.context import FromContext
 from aioinject.providers.scoped import Transient
+from aioinject.scope import BaseScope, CurrentScope
 
 
 if TYPE_CHECKING:
@@ -58,14 +60,27 @@ class IterableNode:
         return hash((self.name, True))
 
 
-AnyNode = ProviderNode | IterableNode
+@dataclasses.dataclass(slots=True, kw_only=True)
+class FromContextNode:
+    name: str
+    type_: type[Any]
+    scope: BaseScope | CurrentScope
+    dependencies: tuple[BoundDependency[object], ...] = ()
+
+    def __hash__(self) -> int:
+        return hash((self.name, self.type_, self.scope))
+
+
+AnyNode = ProviderNode | IterableNode | FromContextNode
 
 
 def _get_orig_bases(type_: type) -> tuple[type, ...] | None:
     return getattr(type_, "__orig_bases__", None)
 
 
-def generic_args_map(type_: type[object]) -> dict[str, type[object]]:  # noqa: C901
+def generic_args_map(  # noqa: C901
+    type_: type[object],
+) -> dict[str, type[object]]:
     if is_generic_alias(type_):
         if not (parameters := getattr(type_.__origin__, "__parameters__", ())):
             return {}  # pragma: no cover
@@ -165,10 +180,18 @@ def _resolve_provider_node_dependencies(
             else dependency_type
         )
         variable_name = make_dependency_name(resolved_type)  # type: ignore[arg-type]
+
         if isinstance(dependency_provider.provider, Transient):
             variable_name = (
                 f"{node_name}_{provider_dependency.name}_{variable_name}"
             )
+        if isinstance(dependency_provider.provider, FromContext):
+            scope_name = (
+                provider.info.scope.name
+                if isinstance(dependency_provider.provider.scope, CurrentScope)
+                else dependency_provider.provider.scope.name
+            )
+            variable_name = f"scope_{scope_name}"
 
         dependency = BoundDependency(
             variable_name=variable_name,
@@ -181,7 +204,12 @@ def _resolve_provider_node_dependencies(
     return tuple(dependencies)
 
 
-def _resolve_node(type_: type[Any], name: str, registry: Registry) -> AnyNode:
+def _resolve_node(
+    type_: type[Any],
+    name: str,
+    registry: Registry,
+    dependant: ProviderNode | None = None,
+) -> AnyNode:
     try:
         provider = registry.get_provider(type_)
     except ProviderNotFoundError:
@@ -205,10 +233,22 @@ def _resolve_node(type_: type[Any], name: str, registry: Registry) -> AnyNode:
                 for provider in providers
             ),
         )
-
     resolved_type = (
         provider.info.type_ if type_ == provider.info.interface else type_
     )
+
+    if isinstance(provider.provider, FromContext):
+        scope = provider.provider.scope
+        if dependant and isinstance(scope, CurrentScope):
+            scope = dependant.provider.info.scope
+            name = f"scope_{scope.name}"
+
+        return FromContextNode(
+            name=name,
+            scope=scope,
+            type_=type_,
+        )
+
     return ProviderNode(
         type_=resolved_type,
         name=name,
@@ -257,7 +297,10 @@ def resolve_dependencies(  # noqa: C901
                     )
                     stack.append(
                         _resolve_node(
-                            dependency_type, dependency.variable_name, registry
+                            type_=dependency_type,
+                            name=dependency.variable_name,
+                            registry=registry,
+                            dependant=node,
                         )
                     )
 
@@ -276,6 +319,8 @@ def resolve_dependencies(  # noqa: C901
                         ),
                     )
                     stack.append(new_node)
+            case FromContextNode():
+                pass
             case _:  # pragma: no cover
                 typing.assert_never(node)  # type: ignore[unreachable]
 

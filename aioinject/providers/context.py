@@ -8,12 +8,15 @@ from aioinject.extensions.providers import (
     ProviderInfo,
 )
 from aioinject.providers.abc import Provider
-from aioinject.scope import BaseScope
+from aioinject.scope import BaseScope, CurrentScope
 
 
 class FromContext(Provider[T]):
-    def __init__(self, type_: type[T], scope: BaseScope) -> None:
-        self.interface = type_
+    def __init__(
+        self,
+        type_: type[T],
+        scope: BaseScope | CurrentScope,
+    ) -> None:
         self.implementation = type_
         self.scope = scope
 
@@ -34,6 +37,6 @@ class ContextProviderExtension(ProviderExtension[FromContext[Any]]):
             interface=provider.implementation,
             type_=provider.implementation,
             dependencies=(),
-            scope=provider.scope,
+            scope=provider.scope,  # type: ignore[arg-type]
             compilation_directives=(CacheDirective(optional=False),),
         )

@@ -52,6 +52,7 @@ class Context:
         self.cache: dict[type[object], object] = (
             cache if cache is not None else {}
         )
+        self.cache[type(self)] = self
         self.exit_stack = contextlib.AsyncExitStack()
         self.lock = lock_factory()
 
@@ -68,7 +69,8 @@ class Context:
 
     async def resolve(self, /, type_: type[T]) -> T:
         return await self.container.registry.compile(type_, is_async=True)(
-            self._context
+            self._context,
+            self.scope,
         )
 
     def context(
@@ -110,6 +112,7 @@ class SyncContext:
         self.cache: dict[type[object], object] = (
             cache if cache is not None else {}
         )
+        self.cache[type(self)] = self
         self.exit_stack = contextlib.ExitStack()
         self.lock = lock_factory()
 
@@ -126,7 +129,8 @@ class SyncContext:
 
     def resolve(self, /, type_: type[T]) -> T:
         return self.container.registry.compile(type_, is_async=False)(
-            self._context
+            self._context,
+            self.scope,
         )
 
     def context(

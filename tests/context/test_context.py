@@ -8,6 +8,7 @@ from typing_extensions import Self
 
 from aioinject import (
     Container,
+    Context,
     Object,
     Provider,
     Scoped,
@@ -15,7 +16,7 @@ from aioinject import (
     SyncContainer,
 )
 from aioinject.providers.context import FromContext
-from aioinject.scope import Scope
+from aioinject.scope import CurrentScope, Scope
 
 
 class _TestError(Exception):
@@ -183,3 +184,37 @@ async def test_latest_registered_interface_is_provided() -> None:
     container.register(Object(42), Object(0))
     with container.context() as ctx:
         assert ctx.resolve(int) == 0
+
+
+async def test_can_inject_context() -> None:
+    class NeedsContext:
+        def __init__(self, context: Context) -> None:
+            self.context = context
+
+    container = Container()
+    container.register(Scoped(NeedsContext))
+    container.register(FromContext(Context, scope=CurrentScope()))
+    async with container.context() as ctx:
+        obj = await ctx.resolve(NeedsContext)
+        assert obj.context is ctx
+
+
+async def test_context_injected_from_relevant_scopes() -> None:
+    class A:
+        def __init__(self, context: Context) -> None:
+            self.context = context
+
+    class B:
+        def __init__(self, a: A, context: Context) -> None:
+            self.a = a
+            self.context = context
+
+    container = Container()
+    container.register(Singleton(A))
+    container.register(Scoped(B))
+    container.register(FromContext(Context, scope=CurrentScope()))
+
+    async with container.context() as ctx:
+        obj = await ctx.resolve(B)
+        assert obj.context is ctx
+        assert obj.a.context is container.root

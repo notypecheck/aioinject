@@ -9,7 +9,12 @@ from aioinject._compilation.naming import (
     create_var_name,
     generate_factory_kwargs,
 )
-from aioinject._compilation.resolve import AnyNode, IterableNode, ProviderNode
+from aioinject._compilation.resolve import (
+    AnyNode,
+    FromContextNode,
+    IterableNode,
+    ProviderNode,
+)
 from aioinject._compilation.util import Indent
 from aioinject._types import CompiledFn
 from aioinject.extensions.providers import (
@@ -19,7 +24,7 @@ from aioinject.extensions.providers import (
     ProviderInfo,
     ResolveDirective,
 )
-from aioinject.scope import BaseScope
+from aioinject.scope import BaseScope, CurrentScope
 
 
 if TYPE_CHECKING:
@@ -37,7 +42,7 @@ class CompilationParams:
 
 
 BODY = """
-{async}def factory(scopes: "Mapping[BaseScope, Context]") -> "T":
+{async}def factory(scopes: "Mapping[BaseScope, Context]", current_scope: "BaseScope") -> "T":
 {body}
     return {return_var_name}"""
 PREPARE_SCOPE_CACHE = "{scope_name}_cache = scopes[{scope_name}].cache\n"
@@ -172,6 +177,16 @@ def _compile_iterable_node(
     return [template]
 
 
+def _compile_from_context_node(node: FromContextNode) -> list[str]:
+    scope = (
+        "current_scope"
+        if isinstance(node.scope, CurrentScope)
+        else f"{node.scope.name}_scope"
+    )
+    name = create_var_name(node)
+    return [f"    {name}_instance = scopes[{scope}].cache[{name}_type]\n"]
+
+
 def _compile_node(
     node: AnyNode,
     extensions: Extensions,
@@ -183,6 +198,8 @@ def _compile_node(
             return _compile_provider_node(node, extensions, is_async=is_async)
         case IterableNode():
             return _compile_iterable_node(node)
+        case FromContextNode():
+            return _compile_from_context_node(node)
         case _:  # pragma: no cover
             typing.assert_never(node)  # type: ignore[unreachable]
 
@@ -199,6 +216,10 @@ def compile_fn(  # noqa: C901
         "registry": registry,
         **registry.type_context,
     }
+    namespace.update(
+        {f"{scope.name}_scope": scope for scope in registry.scopes}
+    )
+
     for node in params.nodes:
         match node:
             case ProviderNode():
@@ -207,6 +228,8 @@ def compile_fn(  # noqa: C901
                     provider.provider
                 )
                 namespace[f"{create_var_name(node)}_record"] = provider
+                namespace[f"{create_var_name(node)}_type"] = node.type_
+            case FromContextNode():
                 namespace[f"{create_var_name(node)}_type"] = node.type_
             case IterableNode():
                 pass
@@ -220,7 +243,7 @@ def compile_fn(  # noqa: C901
         match node:
             case ProviderNode():
                 used_scopes.add(node.provider.info.scope)
-            case IterableNode():
+            case IterableNode() | FromContextNode():
                 pass
             case _:  # pragma: no cover
                 typing.assert_never(node)  # type: ignore[unreachable]
@@ -251,8 +274,6 @@ def compile_fn(  # noqa: C901
                     )
                 )
             )
-
-    namespace.update({f"{scope.name}_scope": scope for scope in used_scopes})
 
     for node in params.nodes:
         parts.extend(_compile_node(node, extensions, is_async=is_async))
