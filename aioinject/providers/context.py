@@ -4,7 +4,6 @@ from typing import Any
 from aioinject._types import FactoryResult, T
 from aioinject.extensions import ProviderExtension
 from aioinject.extensions.providers import (
-    CacheDirective,
     ProviderInfo,
 )
 from aioinject.providers.abc import Provider
@@ -38,5 +37,5 @@ class ContextProviderExtension(ProviderExtension[FromContext[Any]]):
             type_=provider.implementation,
             dependencies=(),
             scope=provider.scope,  # type: ignore[arg-type]
-            compilation_directives=(CacheDirective(optional=False),),
+            compilation_directives=(),
         )

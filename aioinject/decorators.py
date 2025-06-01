@@ -43,23 +43,6 @@ else:
             return Annotated[item, Inject]
 
 
-def get_inject_annotations(
-    function: Callable[..., Any],
-) -> dict[str, Any]:
-    with remove_annotation(function.__annotations__, "return"):
-        return {
-            name: annotation
-            for name, annotation in typing.get_type_hints(
-                function,
-                include_extras=True,
-            ).items()
-            if any(
-                isinstance(arg, Inject) or arg is Inject
-                for arg in typing.get_args(annotation)
-            )
-        }
-
-
 def clear_wrapper(wrapper: _F, args: list[str]) -> _F:
     signature = inspect.signature(wrapper)
     new_params = tuple(
@@ -89,13 +72,11 @@ def _find_inject_marker_in_annotated_args(
 
 
 def collect_dependencies(
-    dependant: typing.Callable[..., object] | dict[str, Any],
+    dependant: typing.Callable[..., object],
 ) -> typing.Iterable[Dependency[object]]:
-    if not isinstance(dependant, dict):
-        with remove_annotation(dependant.__annotations__, "return"):
-            type_hints = typing.get_type_hints(dependant, include_extras=True)
-    else:
-        type_hints = dependant
+    with remove_annotation(dependant.__annotations__, "return"):
+        type_hints = typing.get_type_hints(dependant, include_extras=True)
+
     for name, hint in type_hints.items():
         dep_type, args = unwrap_annotated(hint)
         inject_marker = _find_inject_marker_in_annotated_args(args)
