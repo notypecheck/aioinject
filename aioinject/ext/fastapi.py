@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import inspect
 from collections.abc import Callable
 from typing import TYPE_CHECKING
 
@@ -17,23 +18,51 @@ if TYPE_CHECKING:
     from aioinject import Container
 
 from aioinject import FromContext
-from aioinject._types import P, T
+from aioinject._types import (
+    P,
+    T,
+    unwrap_annotated,
+)
 
 
 __all__ = ["AioInjectMiddleware", "inject"]
 
 
 def inject(function: Callable[P, T]) -> Callable[P, T]:
+    signature = inspect.signature(function)
+    existing_parameter = next(
+        (
+            param
+            for param in signature.parameters.values()
+            if issubclass(
+                unwrap_annotated(param.annotation).type, (Request, WebSocket)
+            )
+        ),
+        None,
+    )
+    parameter_name = (
+        existing_parameter.name if existing_parameter else "aioinject__request"
+    )
+    parameter_type = (
+        unwrap_annotated(existing_parameter.annotation).type
+        if existing_parameter
+        else Request
+    )
+
     return base_inject(
         function,
         context_parameters=(
-            ContextParameter(name="aioinject__request", type_=Request),
+            ContextParameter(
+                name=parameter_name,
+                type_=parameter_type,
+                remove=existing_parameter is None,
+            ),
             ContextParameter(
                 name="aioinject__background_tasks", type_=BackgroundTasks
             ),
         ),
         context_getter=lambda kwargs: kwargs[
-            "aioinject__request"
+            parameter_name
         ].state.aioinject_context,
     )
 

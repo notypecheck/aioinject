@@ -12,6 +12,7 @@ from types import GenericAlias
 from typing import (
     TYPE_CHECKING,
     Any,
+    NamedTuple,
     ParamSpec,
     TypeAlias,
     TypeGuard,
@@ -53,6 +54,11 @@ ExecutionContext = dict[BaseScope, "Context | SyncContext"]
 
 CompiledFn = Callable[[ExecutionContext, BaseScope], Awaitable[T_co]]
 SyncCompiledFn = Callable[[ExecutionContext, BaseScope], T_co]
+
+
+class UnwrappedAnnotation(NamedTuple):
+    type: type[object]
+    args: Sequence[object]
 
 
 def get_return_annotation(
@@ -137,12 +143,12 @@ def remove_annotation(
         annotations[name] = annotation
 
 
-def unwrap_annotated(type_hint: Any) -> tuple[type[object], Sequence[Any]]:
+def unwrap_annotated(type_hint: Any) -> UnwrappedAnnotation:
     if typing.get_origin(type_hint) is not typing.Annotated:
-        return type_hint, ()
+        return UnwrappedAnnotation(type_hint, ())
 
     dep_type, *args = typing.get_args(type_hint)
-    return dep_type, tuple(args)
+    return UnwrappedAnnotation(dep_type, tuple(args))
 
 
 def is_iterable_generic_collection(type_: Any) -> bool:

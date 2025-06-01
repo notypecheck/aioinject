@@ -4,6 +4,8 @@ from typing import Annotated
 import httpx
 import pytest
 from fastapi import Depends, FastAPI
+from fastapi.testclient import TestClient
+from fastapi.websockets import WebSocket
 from httpx import ASGITransport
 
 import aioinject
@@ -34,7 +36,7 @@ async def async_generator_dependency(
 
 
 @pytest.fixture
-def app(container: aioinject.Container) -> FastAPI:
+def app(container: aioinject.Container) -> FastAPI:  # noqa: C901
     app_ = FastAPI()
     app_.add_middleware(AioInjectMiddleware, container=container)
 
@@ -73,6 +75,12 @@ def app(container: aioinject.Container) -> FastAPI:
     ) -> dict[str, str | int]:
         return {"value": number}
 
+    @app_.websocket("/ws")
+    @inject
+    async def websocket_route(ws: WebSocket, provided: Injected[int]) -> None:
+        await ws.accept()
+        await ws.send_json({"value": provided})
+
     return app_
 
 
@@ -82,4 +90,10 @@ async def http_client(app: FastAPI) -> AsyncIterator[httpx.AsyncClient]:
         transport=ASGITransport(app),
         base_url="http://test",
     ) as client:
+        yield client
+
+
+@pytest.fixture
+async def starlette_http_client(app: FastAPI) -> AsyncIterator[TestClient]:
+    with TestClient(app=app) as client:
         yield client
