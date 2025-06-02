@@ -1,3 +1,4 @@
+import inspect
 from collections.abc import Awaitable, Callable
 from typing import Any
 
@@ -5,19 +6,29 @@ from aiogram import BaseMiddleware, Router
 from aiogram.types import TelegramObject
 
 import aioinject
-from aioinject import _utils, decorators
 from aioinject._types import P, T
+from aioinject.decorators import add_parameters_to_signature, base_inject
 
 
 __all__ = ["AioInjectMiddleware", "inject"]
 
 
-def inject(function: Callable[P, T]) -> Callable[P, T]:
-    wrapper = decorators.inject(
+_ARG_NAME = "aioinject_context"
+
+
+def inject(function: Callable[P, T]) -> Callable[P, T]:  # pragma: no cover
+    signature = inspect.signature(function)
+    existing_parameter = signature.parameters.get(_ARG_NAME)
+    if not existing_parameter:
+        add_parameters_to_signature(function, {_ARG_NAME: aioinject.Context})
+
+    return base_inject(
         function,
-        inject_method=decorators.InjectMethod.context,
+        context_parameters=(),
+        context_getter=lambda kwargs: kwargs.pop(_ARG_NAME)
+        if not existing_parameter
+        else kwargs[_ARG_NAME],
     )
-    return _utils.clear_wrapper(wrapper)
 
 
 class AioInjectMiddleware(BaseMiddleware):
@@ -30,7 +41,8 @@ class AioInjectMiddleware(BaseMiddleware):
         event: TelegramObject,
         data: dict[str, Any],
     ) -> Any:
-        async with self.container.context():
+        async with self.container.context() as ctx:
+            data[_ARG_NAME] = ctx
             return await handler(event, data)
 
     def add_to_router(self, router: Router) -> None:

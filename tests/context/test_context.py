@@ -1,15 +1,22 @@
 import contextlib
 from collections.abc import AsyncIterator, Generator, Iterator
-from typing import Annotated, Any
+from typing import Any
 
 import anyio
 import pytest
 from typing_extensions import Self
 
-from aioinject import Object, Provider, Scoped, Singleton, providers
-from aioinject.containers import Container
-from aioinject.markers import Inject
-from tests.utils_ import maybe_async_context, maybe_await
+from aioinject import (
+    Container,
+    Context,
+    Object,
+    Provider,
+    Scoped,
+    Singleton,
+    SyncContainer,
+)
+from aioinject.providers.context import FromContext
+from aioinject.scope import CurrentScope, Scope
 
 
 class _TestError(Exception):
@@ -21,53 +28,26 @@ class _Session:
 
 
 class _Repository:
-    def __init__(self, session: Annotated[_Session, Inject]) -> None:
+    def __init__(self, session: _Session) -> None:
         self.session = session
 
 
 class _Service:
-    def __init__(self, repository: Annotated[_Repository, Inject]) -> None:
+    def __init__(self, repository: _Repository) -> None:
         self.repository = repository
 
 
 @pytest.fixture
 def container() -> Container:
     container = Container()
-    container.register(providers.Scoped(_Session))
-    container.register(providers.Scoped(_Repository))
-    container.register(providers.Scoped(_Service))
+    container.register(Scoped(_Session))
+    container.register(Scoped(_Repository))
+    container.register(Scoped(_Service))
     return container
 
 
 def test_can_instantiate_context(container: Container) -> None:
     assert container.context()
-
-
-def test_can_retrieve_service(container: Container) -> None:
-    with container.sync_context() as ctx:
-        service = ctx.resolve(_Service)
-        assert isinstance(service, _Service)
-        assert isinstance(service.repository, _Repository)
-        assert isinstance(service.repository.session, _Session)
-
-
-def test_uses_cache(container: Container) -> None:
-    with container.sync_context() as ctx:
-        service = ctx.resolve(_Service)
-        a, b, c = service, service.repository, service.repository.session
-
-        service = ctx.resolve(_Service)
-        assert a is service
-        assert b is service.repository
-        assert c is service.repository.session
-
-
-def test_does_not_preserve_cache_if_recreated(container: Container) -> None:
-    with container.sync_context() as ctx:
-        service = ctx.resolve(_Service)
-
-    with container.sync_context() as ctx:
-        assert ctx.resolve(_Service) is not service
 
 
 async def test_provide_async() -> None:
@@ -177,13 +157,64 @@ async def test_returns_self() -> None:
             assert instance.number == "42"
 
 
-@pytest.mark.parametrize("context_method_name", ["sync_context", "context"])
-async def test_context_providers(context_method_name: str) -> None:
+async def test_context_provider_async() -> None:
     container = Container()
+    container.register(FromContext(_Session, scope=Scope.request))
     container.register(Scoped(_Repository))
-    context_method = getattr(container, context_method_name)
     session = _Session()
 
-    async with maybe_async_context(context_method({_Session: session})) as ctx:
-        repo = await maybe_await(ctx.resolve(_Repository))
+    async with container.context({_Session: session}) as ctx:
+        repo = await ctx.resolve(_Repository)
         assert repo.session is session
+
+
+async def test_context_provider_sync() -> None:
+    container = SyncContainer()
+    container.register(FromContext(_Session, scope=Scope.request))
+    container.register(Scoped(_Repository))
+    session = _Session()
+
+    with container.context({_Session: session}) as ctx:
+        repo = ctx.resolve(_Repository)
+        assert repo.session is session
+
+
+async def test_latest_registered_interface_is_provided() -> None:
+    container = SyncContainer()
+    container.register(Object(42), Object(0))
+    with container.context() as ctx:
+        assert ctx.resolve(int) == 0
+
+
+async def test_can_inject_context() -> None:
+    class NeedsContext:
+        def __init__(self, context: Context) -> None:
+            self.context = context
+
+    container = Container()
+    container.register(Scoped(NeedsContext))
+    container.register(FromContext(Context, scope=CurrentScope()))
+    async with container.context() as ctx:
+        obj = await ctx.resolve(NeedsContext)
+        assert obj.context is ctx
+
+
+async def test_context_injected_from_relevant_scopes() -> None:
+    class A:
+        def __init__(self, context: Context) -> None:
+            self.context = context
+
+    class B:
+        def __init__(self, a: A, context: Context) -> None:
+            self.a = a
+            self.context = context
+
+    container = Container()
+    container.register(Singleton(A))
+    container.register(Scoped(B))
+    container.register(FromContext(Context, scope=CurrentScope()))
+
+    async with container.context() as ctx:
+        obj = await ctx.resolve(B)
+        assert obj.context is ctx
+        assert obj.a.context is container.root

@@ -28,6 +28,8 @@ object, bound to a specific container
 
 `Object` provider just returns an object provided to it:
 ```python
-aioinject.Object(42)
+from aioinject import Object
+
+Object(42)
 ```
 would always return 42

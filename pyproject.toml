@@ -4,7 +4,7 @@ version = "0.38.1"
 description = "Async dependency injection library"
 requires-python = ">=3.10"
 authors = [
-    { name = "Doctor", email = "thirvondukr@gmail.com" },
+    { name = "Doctor", email = "notypecheck@gmail.com" },
     { name = "dexofan", email = "fadeddexofan@gmail.com" },
 ]
 readme = "README.md"
@@ -17,28 +17,40 @@ dependencies = [
 ]
 
 [project.urls]
-Documentation = "https://thirvondukr.github.io/aioinject/"
-Repository = "https://github.com/ThirVondukr/aioinject"
+Documentation = "https://notypecheck.github.io/aioinject/"
+Repository = "https://github.com/notypecheck/aioinject"
 
 [dependency-groups]
-dev = [
-    "aiogram>=3.18.0",
-    "anyio>=4.8.0",
-    "asgi-lifespan>=2.1.0",
-    "coverage[toml]>=7.6.12",
-    "fastapi>=0.115.11",
-    "litestar>=2.15.1",
-    "mkdocs>=1.6.1",
-    "mkdocs-material>=9.6.7",
-    "mypy>=1.15.0",
-    "pydantic-settings>=2.8.1",
-    "pytest>=8.3.5",
-    "pytest-cov>=6.0.0",
-    "ruff>=0.9.10",
-    "strawberry-graphql>=0.262.1",
-    "trio>=0.29.0",
-    "uvicorn>=0.34.0",
+benchmark = [
+    "dependency-injector>=4.47.1",
+    "di>=0.79.2",
+    "dishka>=1.6.0",
+    "lagom>=2.7.5",
+    "punq>=0.7.0",
+    "rodi>=2.0.8",
 ]
+dev = [
+    "aiogram>=3.20.0.post0",
+    "anyio>=4.9.0",
+    "asgi-lifespan>=2.1.0",
+    "coverage[toml]>=7.8.2",
+    "fastapi>=0.115.12",
+    "litestar>=2.16.0",
+    "mkdocs>=1.6.1",
+    "mkdocs-material>=9.6.14",
+    "mypy>=1.16.0",
+    "pydantic-settings>=2.9.1",
+    "pytest>=8.3.5",
+    "pytest-cov>=6.1.1",
+    "ruff>=0.11.12",
+    "strawberry-graphql>=0.270.5",
+    "trio>=0.30.0",
+    "uvicorn>=0.34.3",
+]
+tests = []
+
+[tool.uv]
+default-groups = "all"
 
 [build-system]
 requires = ["hatchling"]
@@ -120,12 +132,13 @@ ignore = [
     "EXE",
     "ISC001", # ruff format conflict
     "COM812", # ruff format conflict
-    "TD003", # Missing TODO link
-    "FIX002", # TODO in code
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/*" = ["S101"]
+"tests/*" = [
+    "S101",
+    "S311", # random
+]
 "tests/*/test_*.py" = ["FBT001"]
 "docs/*" = [
     "INP001", # Implicit package (no __init__.py)
@@ -160,6 +173,7 @@ ban-relative-imports = "all"
 
 
 [tool.mypy]
+python_version = "3.10"
 strict = true
 follow_imports = "normal"
 ignore_missing_imports = false
@@ -177,5 +191,3 @@ warn_unreachable = true
 pretty = true
 show_column_numbers = true
 show_error_codes = true
-
-

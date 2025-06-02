@@ -1,0 +1,23 @@
+import functools
+import random
+
+from aioinject import Container, Scoped
+
+
+async def test_partial() -> None:
+    number_1 = random.randint(1, 1000)
+    number_2 = random.randint(1, 1000)
+
+    async def make_int_str() -> str:
+        return f"{number_1}"
+
+    async def fn(value: int, dependency: str) -> int:
+        return value + int(dependency)
+
+    container = Container()
+    container.register(
+        Scoped(functools.partial(fn, value=number_2)), Scoped(make_int_str)
+    )
+    async with container.context() as ctx:
+        number = await ctx.resolve(int)
+        assert number == number_1 + number_2

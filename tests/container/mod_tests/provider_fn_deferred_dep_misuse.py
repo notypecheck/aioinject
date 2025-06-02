@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-from aioinject.containers import Container
-from aioinject.providers import Singleton
+from aioinject import Container, Singleton
 
 
 cont = Container()

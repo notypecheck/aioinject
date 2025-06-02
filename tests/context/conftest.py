@@ -1,9 +1,8 @@
 import dataclasses
-from typing import Annotated
 
 import pytest
 
-from aioinject import Container, Inject, Scoped
+from aioinject import Container, Scoped
 
 
 class _A:
@@ -12,12 +11,12 @@ class _A:
 
 @dataclasses.dataclass
 class _B:
-    a: Annotated[_A, Inject]
+    a: _A
 
 
 @dataclasses.dataclass
 class _C:
-    b: Annotated[_B, Inject]
+    b: _B
 
 
 @pytest.fixture

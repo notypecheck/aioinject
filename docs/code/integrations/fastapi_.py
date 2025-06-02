@@ -4,13 +4,12 @@ from collections.abc import AsyncIterator
 import uvicorn
 from fastapi import FastAPI
 
-import aioinject
-from aioinject import Injected
+from aioinject import Container, Injected, Object
 from aioinject.ext.fastapi import AioInjectMiddleware, inject
 
 
-container = aioinject.Container()
-container.register(aioinject.Object(42))
+container = Container()
+container.register(Object(42))
 
 
 @contextlib.asynccontextmanager

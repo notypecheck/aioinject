@@ -3,33 +3,33 @@ import asyncio
 from aiogram import Bot, Dispatcher, Router
 from aiogram.filters import Command
 from aiogram.types import Message
-from benchmark.container import create_container
 
-from aioinject import Injected, Object
+from aioinject import Container, Injected, Object
 from aioinject.ext.aiogram import AioInjectMiddleware, inject
 
 
+router = Router()
+
+
+@router.message(
+    Command(commands=["start"]),
+)
+@inject
+async def start(
+    message: Message,
+    value: Injected[int],
+) -> None:
+    await message.reply(f"Injected value is {value}")
+
+
 async def main() -> None:
-    dispatcher = Dispatcher()
-
-    container = create_container()
+    container = Container()
     container.register(Object(42))
-
-    router = Router()
-
-    @router.message(
-        Command(commands=["start"]),
-    )
-    @inject
-    async def start(
-        message: Message,
-        value: Injected[int],
-    ) -> None:
-        await message.reply(f"Injected value is {value}")
 
     middleware = AioInjectMiddleware(container)
     middleware.add_to_router(router)
 
+    dispatcher = Dispatcher()
     dispatcher.include_router(router)
 
     async with (

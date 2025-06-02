@@ -1,28 +1,70 @@
 from __future__ import annotations
 
+import inspect
 from collections.abc import Callable
-from typing import TYPE_CHECKING, ParamSpec, TypeVar
+from typing import TYPE_CHECKING
 
-from aioinject import _utils, decorators
+from fastapi.background import BackgroundTasks
+from fastapi.requests import Request
+from fastapi.websockets import WebSocket
+
+import aioinject.scope
+from aioinject.decorators import ContextParameter, base_inject
 
 
 if TYPE_CHECKING:
     from starlette.types import ASGIApp, Receive, Scope, Send
 
-    from aioinject.containers import Container
+    from aioinject import Container
+
+from aioinject import FromContext
+from aioinject._types import (
+    P,
+    T,
+    unwrap_annotated,
+)
+
 
 __all__ = ["AioInjectMiddleware", "inject"]
 
-_T = TypeVar("_T")
-_P = ParamSpec("_P")
 
-
-def inject(function: Callable[_P, _T]) -> Callable[_P, _T]:
-    wrapper = decorators.inject(
-        function,
-        inject_method=decorators.InjectMethod.context,
+def inject(function: Callable[P, T]) -> Callable[P, T]:
+    signature = inspect.signature(function)
+    existing_parameter = next(
+        (
+            param
+            for param in signature.parameters.values()
+            if issubclass(
+                unwrap_annotated(param.annotation).type, (Request, WebSocket)
+            )
+        ),
+        None,
     )
-    return _utils.clear_wrapper(wrapper)
+    parameter_name = (
+        existing_parameter.name if existing_parameter else "aioinject__request"
+    )
+    parameter_type = (
+        unwrap_annotated(existing_parameter.annotation).type
+        if existing_parameter
+        else Request
+    )
+
+    return base_inject(
+        function,
+        context_parameters=(
+            ContextParameter(
+                name=parameter_name,
+                type_=parameter_type,
+                remove=existing_parameter is None,
+            ),
+            ContextParameter(
+                name="aioinject__background_tasks", type_=BackgroundTasks
+            ),
+        ),
+        context_getter=lambda kwargs: kwargs[
+            parameter_name
+        ].state.aioinject_context,
+    )
 
 
 class AioInjectMiddleware:
@@ -34,11 +76,24 @@ class AioInjectMiddleware:
         self.app = app
         self.container = container
 
+        self.container.register(
+            FromContext(Request, scope=aioinject.scope.Scope.request)
+        )
+        self.container.register(
+            FromContext(BackgroundTasks, scope=aioinject.scope.Scope.request)
+        )
+
     async def __call__(
         self,
         scope: Scope,
         receive: Receive,
         send: Send,
     ) -> None:
-        async with self.container.context():
+        async with self.container.context() as context:
+            if scope["type"] == "http":
+                request = Request(scope=scope, receive=receive, send=send)
+                request.state.aioinject_context = context
+            if scope["type"] == "websocket":
+                ws = WebSocket(scope=scope, receive=receive, send=send)
+                ws.state.aioinject_context = context
             await self.app(scope, receive, send)

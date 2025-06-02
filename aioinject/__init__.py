@@ -1,28 +1,26 @@
-from aioinject.containers import Container
-from aioinject.context import InjectionContext, SyncInjectionContext
-from aioinject.decorators import inject
-from aioinject.markers import Inject, Injected
-from aioinject.providers import (
-    Object,
-    Provider,
-    Scoped,
-    Singleton,
-    Transient,
-)
+from aioinject.container import Container, SyncContainer
+from aioinject.context import Context, SyncContext
+from aioinject.decorators import Inject, Injected
+from aioinject.providers import Provider
+from aioinject.providers.context import FromContext
+from aioinject.providers.object import Object
+from aioinject.providers.scoped import Scoped, Singleton, Transient
+from aioinject.scope import Scope
 
 
 __all__ = [
     "Container",
+    "Context",
+    "FromContext",
     "Inject",
     "Injected",
-    "InjectionContext",
+    "Injected",
     "Object",
     "Provider",
+    "Scope",
     "Scoped",
     "Singleton",
-    "SyncInjectionContext",
+    "SyncContainer",
+    "SyncContext",
     "Transient",
-    "inject",
 ]
-
-__version__ = "0.38.1"

@@ -1,10 +1,11 @@
 import collections
+import typing
 
 import pytest
 
 from aioinject import (
     Container,
-    InjectionContext,
+    Context,
     Object,
     Provider,
     Scoped,
@@ -12,9 +13,11 @@ from aioinject import (
     Transient,
 )
 from aioinject._types import T
+from aioinject.context import ProviderRecord
 from aioinject.extensions import OnResolveExtension
 
 
+@typing.final
 class _TestExtension(OnResolveExtension):
     def __init__(self) -> None:
         self.type_counter: dict[type[object], int] = collections.defaultdict(
@@ -23,11 +26,11 @@ class _TestExtension(OnResolveExtension):
 
     async def on_resolve(
         self,
-        context: InjectionContext,  # noqa: ARG002
-        provider: Provider[T],
+        context: Context,  # noqa: ARG002
+        provider: ProviderRecord[T],
         instance: T,  # noqa: ARG002
     ) -> None:
-        self.type_counter[provider.type_] += 1
+        self.type_counter[provider.info.type_] += 1
 
 
 @pytest.mark.parametrize(
@@ -40,11 +43,11 @@ class _TestExtension(OnResolveExtension):
     ],
 )
 async def test_on_resolve(provider: Provider[int]) -> None:
-    container = Container()
+    extension = _TestExtension()
+    container = Container(extensions=(extension,))
     container.register(provider)
 
-    extension = _TestExtension()
-    async with container.context(extensions=(extension,)) as ctx:
+    async with container, container.context() as ctx:
         for i in range(1, 10 + 1):
             number = await ctx.resolve(int)
             assert number == 0

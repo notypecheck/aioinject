@@ -1,28 +1,19 @@
 from typing import Any
 
 import aioinject
-from aioinject import InjectionContext, Provider, SyncInjectionContext
-from aioinject.extensions import OnResolveExtension, SyncOnResolveExtension
+from aioinject import Context
+from aioinject.context import ProviderRecord
+from aioinject.extensions import OnResolveExtension
 
 
-class _TestExtension(SyncOnResolveExtension, OnResolveExtension):
+class _TestExtension(OnResolveExtension):
     async def on_resolve(
         self,
-        context: InjectionContext,
-        provider: Provider[Any],
-        instance: Any,
-    ) -> None: ...
-
-    def on_resolve_sync(
-        self,
-        context: SyncInjectionContext,
-        provider: Provider[Any],
+        context: Context,
+        provider: ProviderRecord[Any],
         instance: Any,
     ) -> None: ...
 
 
 async def _pass() -> None:
-    # Same extension should be compatible with both contexts
-    container = aioinject.Container()
-    container.context(extensions=[_TestExtension()])
-    container.sync_context(extensions=[_TestExtension()])
+    aioinject.Container(extensions=[_TestExtension()])
