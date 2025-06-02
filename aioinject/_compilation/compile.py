@@ -119,7 +119,7 @@ def _compile_provider_node(  # noqa: C901
         if cache_directive.optional:
             parts.append(indent.format(CHECK_CACHE.format_map(common_context)))
             indent.indent += 1
-        else:
+        else:  # pragma: no cover
             parts.append(
                 indent.format(CHECK_CACHE_STRICT.format_map(common_context))
             )
@@ -290,4 +290,5 @@ def compile_fn(  # noqa: C901
     localns: dict[str, Any] = {}
     compiled = compile(result, f"aioinject_{return_var_name}", "exec")
     exec(compiled, namespace, localns)  # noqa: S102
+
     return localns["factory"]

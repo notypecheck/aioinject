@@ -67,7 +67,7 @@ def _find_inject_marker_in_annotated_args(
             pass
 
         if isinstance(arg, Inject):
-            return arg
+            return arg  # pragma: no cover
     return None
 
 

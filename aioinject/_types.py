@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import collections
 import contextlib
+import functools
 import inspect
 import sys
 import types
@@ -76,6 +77,8 @@ def _guess_return_type(  # noqa: C901
     factory: FactoryType[T],
     type_context: Mapping[str, type[object]],
 ) -> type[T]:
+    if isinstance(factory, functools.partial):
+        factory = factory.func
     unwrapped = inspect.unwrap(factory)
 
     origin = typing.get_origin(factory)

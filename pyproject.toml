@@ -22,9 +22,9 @@ Repository = "https://github.com/notypecheck/aioinject"
 
 [dependency-groups]
 benchmark = [
-    "dependency-injector>=4.46.0",
+    "dependency-injector>=4.47.1",
     "di>=0.79.2",
-    "dishka>=1.5.3",
+    "dishka>=1.6.0",
     "lagom>=2.7.5",
     "punq>=0.7.0",
     "rodi>=2.0.8",
@@ -33,19 +33,19 @@ dev = [
     "aiogram>=3.20.0.post0",
     "anyio>=4.9.0",
     "asgi-lifespan>=2.1.0",
-    "coverage[toml]>=7.8.0",
+    "coverage[toml]>=7.8.2",
     "fastapi>=0.115.12",
     "litestar>=2.16.0",
     "mkdocs>=1.6.1",
-    "mkdocs-material>=9.6.13",
-    "mypy>=1.15.0",
+    "mkdocs-material>=9.6.14",
+    "mypy>=1.16.0",
     "pydantic-settings>=2.9.1",
     "pytest>=8.3.5",
     "pytest-cov>=6.1.1",
-    "ruff>=0.11.9",
-    "strawberry-graphql>=0.268.0",
+    "ruff>=0.11.12",
+    "strawberry-graphql>=0.270.5",
     "trio>=0.30.0",
-    "uvicorn>=0.34.2",
+    "uvicorn>=0.34.3",
 ]
 tests = []
 

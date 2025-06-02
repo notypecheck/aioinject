@@ -339,6 +339,12 @@ def sort_nodes(nodes: Iterable[AnyNode]) -> Iterator[AnyNode]:
             dep.type_ in seen_types for dep in node.dependencies
         )
         if not dependencies_satisfied:
+            if node in postponed_nodes:
+                msg = (
+                    f"Could not resolve dependencies for type {node.type_}\n"
+                    f"  unresolved dependencies: {[dep.type_ for dep in node.dependencies if dep.type_ not in seen_types]}"
+                )
+                raise ValueError(msg)
             postponed_nodes.add(node)
             queue.appendleft(node)
             continue

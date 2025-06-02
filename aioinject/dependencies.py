@@ -41,13 +41,15 @@ def collect_parameters(
 ) -> typing.Iterable[Dependency[object]]:
     """Collect parameter list from a function or class"""
 
+    ignored_keywords: set[str] = set()
+    if isinstance(dependant, functools.partial):
+        ignored_keywords.update(dependant.keywords.keys())
+        dependant = dependant.func
+
     source, typevar_map = _typevar_map(source=dependant)
 
     if inspect.isclass(source):
         source = source.__init__
-
-    if isinstance(source, functools.partial):
-        return
 
     with remove_annotation(getattr(source, "__annotations__", {}), "return"):
         type_hints = typing.get_type_hints(
@@ -55,6 +57,9 @@ def collect_parameters(
         )
 
     for name, hint in type_hints.items():
+        if name in ignored_keywords:
+            continue
+
         dep_type, _ = unwrap_annotated(hint)
         dep_type = typevar_map.get(dep_type, dep_type)  # type: ignore[assignment]
         yield Dependency(
