@@ -191,7 +191,7 @@ def _resolve_provider_node_dependencies(
                 if isinstance(dependency_provider.provider.scope, CurrentScope)
                 else dependency_provider.provider.scope.name
             )
-            variable_name = f"scope_{scope_name}"
+            variable_name = f"{make_dependency_name(provider_dependency.type_)}_scope_{scope_name}"
 
         dependency = BoundDependency(
             variable_name=variable_name,
@@ -241,7 +241,7 @@ def _resolve_node(
         scope = provider.provider.scope
         if dependant and isinstance(scope, CurrentScope):
             scope = dependant.provider.info.scope
-            name = f"scope_{scope.name}"
+            name = f"{make_dependency_name(type_)}_scope_{scope.name}"
 
         return FromContextNode(
             name=name,
