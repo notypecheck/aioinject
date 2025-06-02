@@ -1,3 +1,39 @@
+## 1.0.0 (2025-06-02)
+
+### Feat
+
+- add support for dependencies that use `functools.partial`
+- **fastapi**: add websocket support
+- add ability to request context dependencies from current scope, automatically add Context/SyncContext to current scope
+- add aiogram integration
+- transient providers
+- add TestContainer class
+- support injecting dependency collections (iterables)
+- support using unbound generics
+- acquire context lock when resolving singletons
+- add fastapi and strawberry-graphql integrations
+
+### Fix
+
+- python3.10 compatibility
+- clear root context cache before and after override
+- correctly resolve interfaces
+- **strawberry-graphql**: except TypeError when checking if argument is a subclass of strawberry.Info
+- import Inject and Injected in aioinject.__init__
+- preserve lifespan order in async container
+- use topological sorter to detect cycles between dependency nodes
+
+### Refactor
+
+- remove dead code
+- wrap resolved nodes into a tuple instead of a list
+- rename `ProviderInfo.actual_type` to `type`
+- call `self.root` instead of `self._root` in `Container.__(a)enter__`
+- move compilation related code into package
+- remove empty tests
+- move TypeVars to aioinject._types
+- fix provider extension naming
+
 ## 0.38.1 (2025-04-10)
 
 ### Fix
