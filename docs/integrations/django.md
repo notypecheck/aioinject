@@ -16,7 +16,7 @@ class DIMiddleware(SyncAioinjectMiddleware):
 
 ```
 
-## Add middleware to your [`settings.MIDDLEWARE`](https://docs.djangoproject.com/en/5.2/topics/http/middleware/#activating-middleware):
+## Add middleware to your [`settings.MIDDLEWARE`](https://docs.djangoproject.com/en/5.2/topics/http/middleware/#activating-middleware)
 
 ```python hl_lines="9" title="app/settings.py"
 MIDDLEWARE = [
@@ -29,4 +29,11 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "app.di.DIMiddleware",
 ]
+```
+
+
+## Mark your view with `@inject`
+
+```python title="views.py"
+--8<-- "docs/code/integrations/django_02_view.py"
 ```
