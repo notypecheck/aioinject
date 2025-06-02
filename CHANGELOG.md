@@ -1,3 +1,9 @@
+## 1.0.1 (2025-06-02)
+
+### Fix
+
+- correctly name FromContext nodes
+
 ## 1.0.0 (2025-06-02)
 
 ### Feat
