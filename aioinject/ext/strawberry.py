@@ -66,7 +66,7 @@ def inject(
                 remove=info_parameter is None,
             ),
         ),
-        context_getter=lambda kwargs: context_getter(
+        context_getter=lambda args, kwargs: context_getter(  # noqa: ARG005
             kwargs[info_parameter_name].context
         ),
         enter_context=True,

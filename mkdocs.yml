@@ -18,6 +18,7 @@ nav:
   - Extensions: extensions.md
   - Framework Integrations:
       - Aiogram: integrations/aiogram.md
+      - Django: integrations/django.md
       - FastAPI: integrations/fastapi.md
       - Litestar: integrations/litestar.md
       - Strawberry GraphQL: integrations/strawberry-graphql.md

@@ -118,7 +118,7 @@ class ContextParameter:
     remove: bool = True
 
 
-ContextGetter = Callable[[dict[str, Any]], T]
+ContextGetter = Callable[[tuple[Any, ...], dict[str, Any]], T]
 
 
 def _add_context(
@@ -145,7 +145,7 @@ def _async_wrapper_factory(
     enter_context: bool,
 ) -> Callable[P, Awaitable[T]]:
     async def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
-        context = context_getter(kwargs)
+        context = context_getter(args, kwargs)
         async with (
             nullcontext(context) if not enter_context else context.context()
         ) as context:
@@ -172,7 +172,7 @@ def _async_generator_wrapper_factory(
         *args: P.args,
         **kwargs: P.kwargs,
     ) -> AsyncIterator[T]:
-        context = context_getter(kwargs)
+        context = context_getter(args, kwargs)
         async with (
             nullcontext(context) if not enter_context else context.context()
         ) as context:
@@ -197,7 +197,7 @@ def _sync_wrapper_factory(
     enter_context: bool,
 ) -> Callable[P, object]:
     def wrapper(*args: P.args, **kwargs: P.kwargs) -> object:
-        context = context_getter(kwargs)
+        context = context_getter(args, kwargs)
         with (
             nullcontext(context) if not enter_context else context.context()
         ) as context:
@@ -219,7 +219,7 @@ def _sync_generator_wrapper_factory(
     enter_context: bool,
 ) -> Callable[P, Iterator[T]]:
     def wrapper(*args: P.args, **kwargs: P.kwargs) -> Iterator[T]:
-        context = context_getter(kwargs)
+        context = context_getter(args, kwargs)
         with (
             nullcontext(context) if not enter_context else context.context()
         ) as context:

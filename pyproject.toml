@@ -34,6 +34,9 @@ dev = [
     "anyio>=4.9.0",
     "asgi-lifespan>=2.1.0",
     "coverage[toml]>=7.8.2",
+    "django>=5.2.1",
+    "django-types>=0.20.0",
+    "djangorestframework>=3.16.0",
     "fastapi>=0.115.12",
     "litestar>=2.16.0",
     "mkdocs>=1.6.1",
@@ -46,6 +49,9 @@ dev = [
     "strawberry-graphql>=0.270.5",
     "trio>=0.30.0",
     "uvicorn>=0.34.3",
+]
+test = [
+    "pytest-django>=4.11.1",
 ]
 tests = []
 
@@ -63,6 +69,9 @@ include = ["aioinject/*", "tests/*", "docs/*", "benchmark/*"]
 
 [tool.hatch.build.targets.wheel]
 include = ["aioinject/*"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "tests.integrations.django.app.app.settings"
 
 
 [tool.coverage.run]
@@ -145,6 +154,7 @@ ignore = [
     "S101", # assert
     "T201", # print
 ]
+"docs/code/integrations/django_01_subclass.py" = ["RET504"]
 
 [tool.ruff.lint.flake8-builtins]
 builtins-strict-checking = false
