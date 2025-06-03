@@ -8,7 +8,7 @@ from aioinject import Container, Context, Injected, Scoped, SyncContainer
 from aioinject.decorators import ContextParameter, base_inject
 
 
-def context_getter(kwargs: dict[str, Any]) -> Any:
+def context_getter(_: tuple[Any, ...], kwargs: dict[str, Any]) -> Any:
     return kwargs["context"]
 
 

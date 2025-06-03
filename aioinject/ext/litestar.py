@@ -48,9 +48,9 @@ def inject(function: Callable[_P, _T]) -> Callable[_P, _T]:
                 remove=should_remove,
             ),
         ),
-        context_getter=lambda kwargs: kwargs[_REQUEST_PARAMETER_NAME].scope[
-            _CONTEXT_KEY
-        ],
+        context_getter=lambda args, kwargs: kwargs[  # noqa: ARG005
+            _REQUEST_PARAMETER_NAME
+        ].scope[_CONTEXT_KEY],
     )
 
 

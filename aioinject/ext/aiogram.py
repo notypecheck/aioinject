@@ -25,7 +25,7 @@ def inject(function: Callable[P, T]) -> Callable[P, T]:  # pragma: no cover
     return base_inject(
         function,
         context_parameters=(),
-        context_getter=lambda kwargs: kwargs.pop(_ARG_NAME)
+        context_getter=lambda args, kwargs: kwargs.pop(_ARG_NAME)  # noqa: ARG005
         if not existing_parameter
         else kwargs[_ARG_NAME],
     )

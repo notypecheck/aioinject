@@ -20,3 +20,6 @@ venv*/
 
 # python cached files
 *.py[cod]
+
+# Django Tests
+tests/integrations/django/app/db.sqlite3
