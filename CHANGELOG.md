@@ -1,3 +1,9 @@
+## 1.1.0 (2025-06-03)
+
+### Feat
+
+- add sync django integration
+
 ## 1.0.1 (2025-06-02)
 
 ### Fix
