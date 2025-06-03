@@ -19,13 +19,14 @@ CPU: Ryzen 9 7950x3d
 OS: Windows 10  
 Python 3.12.7  
 
-| Name                | iterations | total                      | mean      | median   |
-|---------------------|------------|----------------------------|-----------|----------|
-| python              | 100000     | 194.093ms                  | 1.941μs   | 1.900μs  |
-| aioinject           | 100000     | 522.858ms                  | 5.229μs   | 4.500μs  |
-| dishka              | 100000     | 519.200ms                  | 5.192μs   | 4.400μs  |
-| rodi                | 100000     | 197.690ms                  | 1.977μs   | 1.900μs  |
-| adriangb/di         | 100000     | 634.185ms                  | 6.342μs   | 6.200μs  |
-| dependency-injector | 100000     | 158.057ms                  | 1.581μs   | 1.600μs  |
-| punq                | 5000       | 10276.696ms (extrapolated) | 102.767μs | 91.500μs |
-| lagom               | 100000     | 1009.967ms                 | 10.100μs  | 9.500μs  |
+| Name                                                                          | iterations | total                      | mean      | median   |
+|-------------------------------------------------------------------------------|------------|----------------------------|-----------|----------|
+| [dependency-injector](https://github.com/ets-labs/python-dependency-injector) | 100000     | 155.024ms                  | 1.550μs   | 1.500μs  |
+| python                                                                        | 100000     | 191.183ms                  | 1.912μs   | 1.900μs  |
+| [rodi](https://github.com/Neoteroi/rodi)                                      | 100000     | 204.169ms                  | 2.042μs   | 2.000μs  |
+| [dishka](https://github.com/reagento/dishka)                                  | 100000     | 529.615ms                  | 5.296μs   | 4.600μs  |
+| aioinject                                                                     | 100000     | 531.493ms                  | 5.315μs   | 4.600μs  |
+| [adriangb/di](https://github.com/adriangb/di)                                 | 100000     | 641.726ms                  | 6.417μs   | 6.100μs  |
+| [lagom](https://github.com/meadsteve/lagom)                                   | 100000     | 985.291ms                  | 9.853μs   | 9.600μs  |
+| [wireup](https://github.com/maldoinc/wireup)                                  | 100000     | 1446.966ms                 | 14.470μs  | 13.800μs |
+| [punq](https://github.com/bobthemighty/punq)                                  | 5000       | 11184.062ms (extrapolated) | 111.841μs | 98.000μs |

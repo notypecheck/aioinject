@@ -1,11 +1,8 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import TYPE_CHECKING
 
-
-if TYPE_CHECKING:
-    from benchmark.lib.bench import BenchmarkResult
+from benchmark.lib.bench import BenchmarkResult, ProjectUrl
 
 
 def time_to_microsecond(delta: float) -> str:
@@ -49,6 +46,16 @@ def get_result_columns(result: BenchmarkResult) -> tuple[str, ...]:
 
 
 def print_markdown_table(results: Sequence[BenchmarkResult]) -> None:
+    for result in results:
+        project_url = next(
+            (e for e in result.benchmark.extras if isinstance(e, ProjectUrl)),
+            None,
+        )
+        if project_url is None:
+            continue
+
+        result.name = f"[{result.name}]({project_url.url})"
+
     header = ("Name", "iterations", "total", "mean", "median")
     rows = [header, *(get_result_columns(result) for result in results)]
     cell_sizes = []

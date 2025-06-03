@@ -139,6 +139,7 @@ benchmark = [
     { name = "lagom" },
     { name = "punq" },
     { name = "rodi" },
+    { name = "wireup" },
 ]
 dev = [
     { name = "aiogram" },
@@ -177,6 +178,7 @@ benchmark = [
     { name = "lagom", specifier = ">=2.7.5" },
     { name = "punq", specifier = ">=0.7.0" },
     { name = "rodi", specifier = ">=2.0.8" },
+    { name = "wireup", specifier = ">=1.0.2" },
 ]
 dev = [
     { name = "aiogram", specifier = ">=3.20.0.post0" },
@@ -1972,6 +1974,18 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/07/f6/d0e5b343768e8bcb4cda79f0f2f55051bf26177ecd5651f84c07567461cf/watchdog-6.0.0-py3-none-win32.whl", hash = "sha256:07df1fdd701c5d4c8e55ef6cf55b8f0120fe1aef7ef39a1c6fc6bc2e606d517a", size = 79065 },
     { url = "https://files.pythonhosted.org/packages/db/d9/c495884c6e548fce18a8f40568ff120bc3a4b7b99813081c8ac0c936fa64/watchdog-6.0.0-py3-none-win_amd64.whl", hash = "sha256:cbafb470cf848d93b5d013e2ecb245d4aa1c8fd0504e863ccefa32445359d680", size = 79070 },
     { url = "https://files.pythonhosted.org/packages/33/e8/e40370e6d74ddba47f002a32919d91310d6074130fe4e17dabcafc15cbf1/watchdog-6.0.0-py3-none-win_ia64.whl", hash = "sha256:a1914259fa9e1454315171103c6a30961236f508b9b623eae470268bbcc6a22f", size = 79067 },
+]
+
+[[package]]
+name = "wireup"
+version = "1.0.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/f5/00/1633d3dae0bea05e57436eb6da439d3245800a45b4124e6590f5420e4b5c/wireup-1.0.2.tar.gz", hash = "sha256:8c7a7fdc2db02265b9a47b94c45a15229dcf9466f3fd043214b7691fbacf11a8", size = 24763 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/80/4e/8ac22d28c4b3eb2b34eb8b9436cde0090c5544c22c1e6f6934a393ba4794/wireup-1.0.2-py3-none-any.whl", hash = "sha256:cae3c2a8eaf98f7a224d4c5b9ec1dfca424b13d585290f5b3f0137a12f4695cd", size = 30131 },
 ]
 
 [[package]]

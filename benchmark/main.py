@@ -9,6 +9,7 @@ from benchmark.benchmarks import (
     benchmark_lagom,
     benchmark_punq,
     benchmark_rodi,
+    benchmark_wireup,
 )
 from benchmark.lib.bench import Benchmark
 from benchmark.lib.format import print_markdown_table, print_results
@@ -25,9 +26,11 @@ async def main() -> None:
             benchmark_dependency_injector,
             benchmark_punq,
             benchmark_lagom,
+            benchmark_wireup,
         ]
     )
     results = await bench.run(rounds=[100_000])
+    results = sorted(results, key=lambda result: result.median)
     print_results(results)
     print_markdown_table(results)
 

@@ -9,16 +9,26 @@ from typing import Final
 BenchmarkedFunction = Callable[["BenchmarkContext"], Awaitable[None]]
 
 
+@dataclasses.dataclass
+class ProjectUrl:
+    url: str
+
+
+Extra = ProjectUrl
+
+
 class BenchmarkEntry:
     def __init__(
         self,
         func: BenchmarkedFunction,
         name: str,
         max_iterations: int | None,
+        extras: Sequence[Extra],
     ) -> None:
         self.func = func
         self.name = name
         self.max_iterations = max_iterations
+        self.extras = extras
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(name={self.name})"
@@ -27,9 +37,12 @@ class BenchmarkEntry:
 def bench(
     name: str,
     max_iterations: int | None = None,
+    extras: Sequence[Extra] = (),
 ) -> Callable[[BenchmarkedFunction], BenchmarkEntry]:
     def inner(func: BenchmarkedFunction) -> BenchmarkEntry:
-        return BenchmarkEntry(func, name=name, max_iterations=max_iterations)
+        return BenchmarkEntry(
+            func, name=name, max_iterations=max_iterations, extras=extras
+        )
 
     return inner
 
@@ -54,6 +67,7 @@ class BenchmarkParameters:
 
 @dataclasses.dataclass
 class BenchmarkResult:
+    benchmark: BenchmarkEntry
     params: BenchmarkParameters
 
     name: str
@@ -112,6 +126,7 @@ class Benchmark:
             median=statistics.median(context.durations),
             total=sum(context.durations),
             extrapolated=extrapolated,
+            benchmark=benchmark,
         )
         assert len(context.durations) == actual_rounds  # noqa: S101
         return result
