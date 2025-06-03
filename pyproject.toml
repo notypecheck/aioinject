@@ -37,6 +37,7 @@ dev = [
     "django>=5.2.1",
     "django-types>=0.20.0",
     "djangorestframework>=3.16.0",
+    "djangorestframework-types>=0.9.0",
     "fastapi>=0.115.12",
     "litestar>=2.16.0",
     "mkdocs>=1.6.1",

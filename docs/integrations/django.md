@@ -37,3 +37,15 @@ MIDDLEWARE = [
 ```python title="views.py"
 --8<-- "docs/code/integrations/django_02_view.py"
 ```
+!!! warning
+    Since django and rest_framework pass request as a positional argument your request parameter should always
+    be declared first.
+
+# Integration with Rest Framework
+`@inject` decorator should work with any function/method that accepts 
+[`django.http.HttpRequest`](https://docs.djangoproject.com/en/5.2/ref/request-response/#httprequest-objects) 
+or [`rest_framework.request.Request`](https://www.django-rest-framework.org/api-guide/requests/):
+```python
+
+--8<-- "docs/code/integrations/django_03_drf.py"
+```
