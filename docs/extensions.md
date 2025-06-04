@@ -16,15 +16,6 @@ be used for example to register dependencies in it:
 --8<-- "docs/code/extensions/on_init.py"
 ```
 
-## Context Extensions
-Context extensions can be added to individual contexts when creating them
-```python hl_lines="2"
-async with container.context(
-    extensions=[MyContextExtension()],
-):
-    pass
-```
-
 ### OnResolve / OnResolveSync
 On resolve extension is called when individual dependency is provided within a context:
 ```python
