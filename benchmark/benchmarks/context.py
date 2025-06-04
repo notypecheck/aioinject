@@ -1,11 +1,6 @@
-import dependency_injector.containers
-import dependency_injector.providers
 import di
 import di.executors
 import dishka
-import lagom
-import punq  # type: ignore[import-untyped]
-import rodi
 import wireup
 from di import bind_by_type
 from di.dependent import Dependent
@@ -22,7 +17,11 @@ from benchmark.dependencies import (
     create_session,
     create_session_cm,
 )
-from benchmark.lib.bench import BenchmarkContext, ProjectUrl, bench
+from benchmark.lib.bench import (
+    BenchmarkCollection,
+    BenchmarkContext,
+    ProjectUrl,
+)
 
 
 COMMON_DEPENDENCIES = [
@@ -34,7 +33,10 @@ COMMON_DEPENDENCIES = [
 ]
 
 
-@bench(name="aioinject")
+context_benchmarks = BenchmarkCollection()
+
+
+@context_benchmarks.bench(name="aioinject")
 async def benchmark_aioinject(context: BenchmarkContext) -> None:
     container = aioinject.Container()
     container.register(Scoped(create_session_cm))
@@ -49,7 +51,7 @@ async def benchmark_aioinject(context: BenchmarkContext) -> None:
                 await ctx.resolve(UseCase)
 
 
-@bench(
+@context_benchmarks.bench(
     name="dishka", extras=(ProjectUrl("https://github.com/reagento/dishka"),)
 )
 async def benchmark_dishka(context: BenchmarkContext) -> None:
@@ -69,7 +71,7 @@ async def benchmark_dishka(context: BenchmarkContext) -> None:
                 await ctx.get(UseCase)
 
 
-@bench(name="python")
+@context_benchmarks.bench(name="python")
 async def bench_python(context: BenchmarkContext) -> None:
     for _ in range(context.rounds):
         with context.round():
@@ -81,21 +83,7 @@ async def bench_python(context: BenchmarkContext) -> None:
                 UseCase(service_a=svc_a, service_b=svc_b)
 
 
-@bench(name="rodi", extras=(ProjectUrl("https://github.com/Neoteroi/rodi"),))
-async def benchmark_rodi(context: BenchmarkContext) -> None:
-    container = rodi.Container()
-    container.add_scoped(Session)
-    for svc in COMMON_DEPENDENCIES:
-        container.add_scoped(svc)
-
-    container.resolve(UseCase)
-
-    for _ in range(context.rounds):
-        with context.round():
-            container.resolve(UseCase)
-
-
-@bench(
+@context_benchmarks.bench(
     name="adriangb/di", extras=(ProjectUrl("https://github.com/adriangb/di"),)
 )
 async def benchmark_di(context: BenchmarkContext) -> None:
@@ -117,71 +105,7 @@ async def benchmark_di(context: BenchmarkContext) -> None:
                 await solved.execute_async(executor=executor, state=state)
 
 
-@bench(
-    name="dependency-injector",
-    extras=(
-        ProjectUrl("https://github.com/ets-labs/python-dependency-injector"),
-    ),
-)
-async def benchmark_dependency_injector(context: BenchmarkContext) -> None:
-    class Container(dependency_injector.containers.DeclarativeContainer):
-        session = dependency_injector.providers.Factory(Session)
-        repository_a = dependency_injector.providers.Factory(
-            RepositoryA, session=session
-        )
-        repository_b = dependency_injector.providers.Factory(
-            RepositoryB, session=session
-        )
-        service_a = dependency_injector.providers.Factory(
-            ServiceA, repository=repository_a
-        )
-        service_b = dependency_injector.providers.Factory(
-            ServiceB, repository=repository_b
-        )
-        use_case = dependency_injector.providers.Factory(
-            UseCase, service_a=service_a, service_b=service_b
-        )
-
-    container = Container()
-
-    container.use_case()
-
-    for _ in range(context.rounds):
-        with context.round():
-            container.use_case()
-
-
-@bench(
-    name="punq",
-    max_iterations=5_000,
-    extras=(ProjectUrl("https://github.com/bobthemighty/punq"),),
-)
-async def benchmark_punq(context: BenchmarkContext) -> None:
-    container = punq.Container()
-    container.register(Session)
-    for svc in COMMON_DEPENDENCIES:
-        container.register(svc)
-    container.resolve(UseCase)
-
-    for _ in range(context.rounds):
-        with context.round():
-            container.resolve(UseCase)
-
-
-@bench(
-    name="lagom", extras=(ProjectUrl("https://github.com/meadsteve/lagom"),)
-)
-async def benchmark_lagom(context: BenchmarkContext) -> None:
-    # Note: not using lifetimes here with lagom
-
-    container = lagom.Container()
-
-    for _ in range(context.rounds):
-        with context.round():
-            container[UseCase]
-
-
-@bench(
+@context_benchmarks.bench(
     name="wireup", extras=(ProjectUrl("https://github.com/maldoinc/wireup"),)
 )
 async def benchmark_wireup(context: BenchmarkContext) -> None:

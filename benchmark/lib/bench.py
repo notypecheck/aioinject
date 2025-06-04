@@ -79,6 +79,26 @@ class BenchmarkResult:
     extrapolated: bool
 
 
+class BenchmarkCollection:
+    def __init__(self, benchmarks: Sequence[BenchmarkEntry] = ()) -> None:
+        self.benchmarks = list(benchmarks)
+
+    def bench(
+        self,
+        name: str,
+        max_iterations: int | None = None,
+        extras: Sequence[Extra] = (),
+    ) -> Callable[[BenchmarkedFunction], BenchmarkEntry]:
+        def inner(func: BenchmarkedFunction) -> BenchmarkEntry:
+            entry = BenchmarkEntry(
+                func, name=name, max_iterations=max_iterations, extras=extras
+            )
+            self.benchmarks.append(entry)
+            return entry
+
+        return inner
+
+
 class Benchmark:
     def __init__(
         self,
