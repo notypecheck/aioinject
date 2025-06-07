@@ -14,12 +14,12 @@ UseCase
 ## Async
 Async API is used, `Session` dependency ran as a context manager, equivalent to
 ```python
-session = Session()
-repo_a = RepositoryA(session=session)
-repo_b = RepositoryB(session=session)
-svc_a = ServiceA(repository=repo_a)
-svc_b = ServiceB(repository=repo_b)
-UseCase(service_a=svc_a, service_b=svc_b)
+async with create_session_cm() as session:
+    repo_a = RepositoryA(session=session)
+    repo_b = RepositoryB(session=session)
+    svc_a = ServiceA(repository=repo_a)
+    svc_b = ServiceB(repository=repo_b)
+    UseCase(service_a=svc_a, service_b=svc_b)
 ```
 
 | Name                                          | iterations | total      | mean     | median   |
@@ -37,12 +37,12 @@ UseCase(service_a=svc_a, service_b=svc_b)
 ## Sync
 All libraries use synchronous API with no context managers, equivalent to
 ```python
-async with create_session_cm() as session:
-    repo_a = RepositoryA(session=session)
-    repo_b = RepositoryB(session=session)
-    svc_a = ServiceA(repository=repo_a)
-    svc_b = ServiceB(repository=repo_b)
-    UseCase(service_a=svc_a, service_b=svc_b)
+session = Session()
+repo_a = RepositoryA(session=session)
+repo_b = RepositoryB(session=session)
+svc_a = ServiceA(repository=repo_a)
+svc_b = ServiceB(repository=repo_b)
+UseCase(service_a=svc_a, service_b=svc_b)
 ```
 
 | Name                                                                          | iterations | total                     | mean     | median   |
