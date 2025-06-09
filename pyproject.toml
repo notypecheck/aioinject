@@ -31,31 +31,34 @@ benchmark = [
     "wireup>=1.0.2",
 ]
 dev = [
+    "mypy>=1.16.0",
+    "ruff>=0.11.13",
+]
+docs = [
+    "mkdocs>=1.6.1",
+    "mkdocs-material>=9.6.14",
+]
+test = [
     "aiogram>=3.20.0.post0",
     "anyio>=4.9.0",
     "asgi-lifespan>=2.1.0",
     "coverage[toml]>=7.8.2",
-    "django>=5.2.1",
-    "django-types>=0.20.0",
+    "django>=5.2.2",
     "djangorestframework>=3.16.0",
-    "djangorestframework-types>=0.9.0",
     "fastapi>=0.115.12",
     "litestar>=2.16.0",
-    "mkdocs>=1.6.1",
-    "mkdocs-material>=9.6.14",
-    "mypy>=1.16.0",
     "pydantic-settings>=2.9.1",
     "pytest>=8.3.5",
     "pytest-cov>=6.1.1",
-    "ruff>=0.11.12",
-    "strawberry-graphql>=0.270.5",
+    "pytest-django>=4.11.1",
+    "strawberry-graphql>=0.271.1",
     "trio>=0.30.0",
     "uvicorn>=0.34.3",
 ]
-test = [
-    "pytest-django>=4.11.1",
+types = [
+    "django-types>=0.20.0",
+    "djangorestframework-types>=0.9.0",
 ]
-tests = []
 
 [tool.uv]
 default-groups = "all"
