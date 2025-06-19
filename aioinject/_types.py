@@ -160,7 +160,7 @@ def is_iterable_generic_collection(type_: Any) -> bool:
 
     is_collection = collections.abc.Iterable in inspect.getmro(
         origin
-    ) or issubclass(origin, collections.abc.Iterable)
+    ) or safe_issubclass(origin, collections.abc.Iterable)
     return bool(is_collection and typing.get_args(type_))
 
 
@@ -169,6 +169,15 @@ def is_generic_alias(type_: Any) -> TypeGuard[GenericAlias]:
         type_,
         types.GenericAlias | typing._GenericAlias,  # type: ignore[attr-defined] # noqa: SLF001
     ) and not is_iterable_generic_collection(type_)
+
+
+def safe_issubclass(
+    obj: type[object], typ: type[object] | tuple[type[object], ...]
+) -> bool:
+    try:
+        return issubclass(obj, typ)
+    except TypeError:
+        return False
 
 
 def get_generic_origin(generic: type[object]) -> type[object]:

@@ -21,6 +21,7 @@ from aioinject import FromContext
 from aioinject._types import (
     P,
     T,
+    safe_issubclass,
     unwrap_annotated,
 )
 
@@ -34,7 +35,7 @@ def inject(function: Callable[P, T]) -> Callable[P, T]:
         (
             param
             for param in signature.parameters.values()
-            if issubclass(
+            if safe_issubclass(
                 unwrap_annotated(param.annotation).type, (Request, WebSocket)
             )
         ),

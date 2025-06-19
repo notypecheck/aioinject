@@ -2,13 +2,16 @@ from __future__ import annotations
 
 import collections
 import dataclasses
-import inspect
 import typing
 from collections.abc import Iterable, Iterator, Sequence
 from typing import TYPE_CHECKING, Any, Generic
 
 from aioinject._compilation.naming import make_dependency_name
-from aioinject._types import T, is_generic_alias
+from aioinject._types import (
+    T,
+    is_generic_alias,
+    is_iterable_generic_collection,
+)
 from aioinject.context import ProviderRecord
 from aioinject.errors import ProviderNotFoundError
 from aioinject.providers.context import FromContext
@@ -19,15 +22,6 @@ from aioinject.scope import BaseScope, CurrentScope
 if TYPE_CHECKING:
     from aioinject.container import Registry
 from aioinject.extensions.providers import Dependency
-
-
-def is_iterable_generic_collection(type_: Any) -> bool:
-    if not (origin := typing.get_origin(type_)):
-        return False
-
-    return collections.abc.Iterable in inspect.getmro(origin) or issubclass(
-        origin, collections.abc.Iterable
-    )
 
 
 @dataclasses.dataclass(slots=True, kw_only=True)

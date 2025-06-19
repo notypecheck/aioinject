@@ -22,7 +22,13 @@ from typing import (
 from typing_extensions import TypeVar
 
 from aioinject import Context, SyncContext
-from aioinject._types import P, T, remove_annotation, unwrap_annotated
+from aioinject._types import (
+    P,
+    T,
+    remove_annotation,
+    safe_issubclass,
+    unwrap_annotated,
+)
 from aioinject.extensions.providers import Dependency
 
 
@@ -60,11 +66,8 @@ def _find_inject_marker_in_annotated_args(
     args: Sequence[Any],
 ) -> Inject | None:
     for arg in args:
-        try:
-            if issubclass(arg, Inject):
-                return Inject()
-        except TypeError:
-            pass
+        if safe_issubclass(arg, Inject):
+            return Inject()
 
         if isinstance(arg, Inject):
             return arg  # pragma: no cover

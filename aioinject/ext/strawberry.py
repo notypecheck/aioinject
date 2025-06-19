@@ -14,7 +14,7 @@ __all__ = ["AioInjectExtension", "inject"]
 from strawberry.utils.typing import is_generic_alias
 
 from aioinject import Container, Context, SyncContainer, SyncContext
-from aioinject._types import P, T
+from aioinject._types import P, T, safe_issubclass
 from aioinject.decorators import ContextParameter, base_inject
 
 
@@ -29,7 +29,7 @@ def _find_strawberry_info_parameter(
             annotation = typing.get_origin(annotation)
 
         try:
-            if issubclass(annotation, strawberry.Info):
+            if safe_issubclass(annotation, strawberry.Info):
                 return p
         except TypeError:  # pragma: no cover
             continue
