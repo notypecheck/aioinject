@@ -11,7 +11,9 @@ def main() -> None:
         "DJANGO_SETTINGS_MODULE", "tests.integrations.django.app.app.settings"
     )
     try:
-        from django.core.management import execute_from_command_line
+        from django.core.management import (  # noqa: PLC0415
+            execute_from_command_line,
+        )
     except ImportError as exc:
         msg = (
             "Couldn't import Django. Are you sure it's installed and "
