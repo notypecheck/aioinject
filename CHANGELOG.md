@@ -1,3 +1,13 @@
+## 1.2.1 (2025-06-20)
+
+### Feat
+
+- Add dependency validation
+
+### Fix
+
+- **inject**: fix issue with decorating functions that have **kwargs parameters in them
+
 ## 1.2.0 (2025-06-06)
 
 ### Feat
