@@ -94,16 +94,37 @@ def add_parameters_to_signature(
     parameters: dict[str, type[object]],
 ) -> Callable[P, T]:
     signature = inspect.signature(func)
-    params = tuple(
-        v for v in signature.parameters.values() if v.name not in parameters
-    ) + tuple(
-        inspect.Parameter(
-            name=name,
-            annotation=annotation,
-            kind=inspect.Parameter.KEYWORD_ONLY,
-        )
-        for name, annotation in parameters.items()
+
+    existing_parameters = [
+        param
+        for param in signature.parameters.values()
+        if param.name not in parameters
+    ]
+    kwargs_parameter = next(
+        (
+            param
+            for param in existing_parameters
+            if param.kind == inspect.Parameter.VAR_KEYWORD
+        ),
+        None,
     )
+    if kwargs_parameter:
+        existing_parameters.remove(kwargs_parameter)
+
+    params = [
+        *existing_parameters,
+        *(
+            inspect.Parameter(
+                name=name,
+                annotation=annotation,
+                kind=inspect.Parameter.KEYWORD_ONLY,
+            )
+            for name, annotation in parameters.items()
+        ),
+    ]
+    # Push **kwargs parameter to end of the function
+    if kwargs_parameter is not None:
+        params.append(kwargs_parameter)
 
     func.__signature__ = signature.replace(parameters=params)  # type: ignore[attr-defined]
     for name, annotation in parameters.items():
