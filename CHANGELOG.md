@@ -1,3 +1,9 @@
+## 1.2.2 (2025-06-20)
+
+### Fix
+
+- TypeError when applying `inject` decorator
+
 ## 1.2.1 (2025-06-20)
 
 ### Feat
