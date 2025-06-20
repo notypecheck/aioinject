@@ -1,3 +1,9 @@
+## 1.2.3 (2025-06-20)
+
+### Fix
+
+- generate valid variable name with unions
+
 ## 1.2.2 (2025-06-20)
 
 ### Fix
