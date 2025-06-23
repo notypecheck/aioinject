@@ -4,3 +4,7 @@ class CannotDetermineReturnTypeError(Exception):
 
 class ProviderNotFoundError(Exception):
     pass
+
+
+class ScopeNotFoundError(Exception):
+    pass

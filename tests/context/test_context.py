@@ -15,6 +15,7 @@ from aioinject import (
     Singleton,
     SyncContainer,
 )
+from aioinject.errors import ScopeNotFoundError
 from aioinject.providers.context import FromContext
 from aioinject.scope import CurrentScope, Scope
 
@@ -218,3 +219,18 @@ async def test_context_injected_from_relevant_scopes() -> None:
         obj = await ctx.resolve(B)
         assert obj.context is ctx
         assert obj.a.context is container.root
+
+
+async def test_invalid_scope() -> None:
+    def fn() -> int:
+        return 42
+
+    container = Container()
+    container.register(Scoped(fn))
+
+    with pytest.raises(ScopeNotFoundError) as err_info:
+        await container.root.resolve(int)
+    assert (
+        str(err_info.value)
+        == "Requested scope Scope.request not found, current scope is Scope.lifetime"
+    )

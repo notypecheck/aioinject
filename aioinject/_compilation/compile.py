@@ -18,6 +18,7 @@ from aioinject._compilation.resolve import (
 )
 from aioinject._compilation.util import Indent
 from aioinject._types import CompiledFn
+from aioinject.errors import ScopeNotFoundError
 from aioinject.extensions.providers import (
     CacheDirective,
     CompilationDirective,
@@ -46,7 +47,13 @@ BODY = """
 {async}def factory(scopes: "Mapping[BaseScope, Context]", current_scope: "BaseScope") -> "T":
 {body}
     return {return_var_name}"""
-PREPARE_SCOPE_CACHE = "{scope_name}_cache = scopes[{scope_name}].cache\n"
+PREPARE_SCOPE_CACHE = (
+    "try:\n"
+    "    {scope_name}_cache = scopes[{scope_name}].cache\n"
+    "except KeyError as err:\n"
+    '    err_msg = f"Requested scope {scope} not found, current scope is {{current_scope}}"\n'
+    "    raise ScopeNotFoundError(err_msg)\n"
+)
 
 PREPARE_SCOPE_EXIT_STACK = (
     "{scope_name}_exit_stack = scopes[{scope_name}].exit_stack\n"
@@ -214,6 +221,7 @@ def compile_fn(  # noqa: C901
 ) -> CompiledFn[Any]:
     namespace = {
         "NotInCache": object(),
+        "ScopeNotFoundError": ScopeNotFoundError,
         "registry": registry,
         **registry.type_context,
     }
@@ -254,7 +262,7 @@ def compile_fn(  # noqa: C901
         parts.append(
             indent.format(
                 PREPARE_SCOPE_CACHE.format_map(
-                    {"scope_name": f"{scope.name}_scope"}
+                    {"scope_name": f"{scope.name}_scope", "scope": scope}
                 )
             )
         )
