@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import dataclasses
+import linecache
 import typing
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any, TypeVar
@@ -280,15 +281,22 @@ def compile_fn(  # noqa: C901
 
     body = "".join(parts)
     return_var_name = create_var_name(params.root)
-    result = BODY.format_map(
+    module_src = BODY.format_map(
         {
             "body": body,
             "return_var_name": f"{create_var_name(params.root)}_instance",
             "async": "async " if is_async else "",
         }
     )
-    localns: dict[str, Any] = {}
-    compiled = compile(result, f"aioinject_{return_var_name}", "exec")
-    exec(compiled, namespace, localns)  # noqa: S102
+    source_filename = f"aioinject_{return_var_name}"
+    linecache.cache[source_filename] = (
+        len(module_src),
+        None,
+        module_src.splitlines(keepends=True),
+        f"aioinject_{return_var_name}",
+    )
 
-    return localns["factory"]
+    compiled = compile(module_src, source_filename, "exec")
+    local_namespace: dict[str, Any] = {}
+    exec(compiled, namespace, local_namespace)  # noqa: S102
+    return local_namespace["factory"]
