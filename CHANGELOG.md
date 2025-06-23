@@ -1,3 +1,10 @@
+## 1.3.0 (2025-06-23)
+
+### Feat
+
+- raise human-readable error if dependency requires scope that isn't yet available/active
+- add compiled function source into `linecache.cache` so it's shown in the traceback
+
 ## 1.2.3 (2025-06-20)
 
 ### Fix
