@@ -82,6 +82,18 @@ class OnResolveSyncExtension(Protocol):
     ) -> None: ...
 
 
+@runtime_checkable
+class OnResolveContextExtension(Protocol):
+    if TYPE_CHECKING:
+
+        @property
+        def enabled(self) -> bool: ...
+
+    def on_resolve_context(
+        self, provider: ProviderRecord[Any]
+    ) -> AbstractAsyncContextManager[None]: ...
+
+
 Extension = (
     ProviderExtension[Any]
     | OnInitExtension
@@ -89,4 +101,5 @@ Extension = (
     | LifespanSyncExtension
     | OnResolveExtension
     | OnResolveSyncExtension
+    | OnResolveContextExtension
 )

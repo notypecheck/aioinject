@@ -24,6 +24,7 @@ from aioinject.extensions import (
     LifespanExtension,
     LifespanSyncExtension,
     OnInitExtension,
+    OnResolveContextExtension,
     OnResolveExtension,
     OnResolveSyncExtension,
     ProviderExtension,
@@ -74,6 +75,11 @@ class Extensions:
             e
             for e in self._extensions
             if isinstance(e, OnResolveSyncExtension)
+        ]
+        self.on_resolve_context = [
+            e
+            for e in self._extensions
+            if isinstance(e, OnResolveContextExtension) and e.enabled
         ]
 
 

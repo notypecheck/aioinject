@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import dataclasses
 import linecache
 import typing
@@ -80,6 +81,11 @@ CALL_SYNC_ON_RESOLVE_EXTENSION = (
     "for extension in registry.extensions.on_resolve_sync:\n"
     "     extension.on_resolve_sync(context=scopes[{scope_name}], provider={dependency}_record, instance={dependency}_instance)\n"
 )
+CALL_ON_RESOLVE_CONTEXT_EXTENSION = (
+    "async with contextlib.AsyncExitStack() as cm:\n"
+    "    for extension in registry.extensions.on_resolve_context:\n"
+    "        await cm.enter_async_context(extension.on_resolve_context({dependency}_record))\n"
+)
 
 
 TCompilationDirective = TypeVar(
@@ -147,6 +153,14 @@ def _compile_provider_node(  # noqa: C901
             else "enter_context",
             "await": "await " if resolve_directive.is_async else "",
         }
+
+        if extensions.on_resolve_context:
+            parts.append(
+                indent.format(CALL_ON_RESOLVE_CONTEXT_EXTENSION).format_map(
+                    context
+                )
+            )
+            indent.indent += 1
 
         parts.append(
             indent.format(
@@ -223,6 +237,7 @@ def compile_fn(  # noqa: C901
         "NotInCache": object(),
         "ScopeNotFoundError": ScopeNotFoundError,
         "registry": registry,
+        "contextlib": contextlib,
         **registry.type_context,
     }
     namespace.update(
