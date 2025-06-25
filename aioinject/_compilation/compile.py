@@ -154,7 +154,7 @@ def _compile_provider_node(  # noqa: C901
             "await": "await " if resolve_directive.is_async else "",
         }
 
-        if extensions.on_resolve_context:
+        if extensions.on_resolve_context and is_async:
             parts.append(
                 indent.format(CALL_ON_RESOLVE_CONTEXT_EXTENSION).format_map(
                     context

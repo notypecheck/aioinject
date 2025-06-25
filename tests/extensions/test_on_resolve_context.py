@@ -6,7 +6,7 @@ from typing import Any, Final
 
 import pytest
 
-from aioinject import Container, Scoped, Singleton, Transient
+from aioinject import Container, Scoped, Singleton, SyncContainer, Transient
 from aioinject.context import ProviderRecord
 from aioinject.extensions import OnResolveContextExtension
 
@@ -106,3 +106,10 @@ async def test_does_not_execute_if_disabled() -> None:
     async with container.context() as ctx:
         await ctx.resolve(int)
         assert not extension.provided
+
+
+def test_async_extension_should_not_be_used_in_sync_container() -> None:
+    container = SyncContainer(extensions=[_TestExtension()])
+    container.register(Scoped(int))
+    with container, container.context() as ctx:
+        ctx.resolve(int)
