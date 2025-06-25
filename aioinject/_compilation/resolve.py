@@ -3,7 +3,7 @@ from __future__ import annotations
 import collections
 import dataclasses
 import typing
-from collections.abc import Iterable, Iterator, Sequence
+from collections.abc import Iterator, Sequence
 from typing import TYPE_CHECKING, Any, Generic
 
 from aioinject._compilation.naming import make_dependency_name
@@ -319,8 +319,10 @@ def resolve_dependencies(  # noqa: C901
                 typing.assert_never(node)  # type: ignore[unreachable]
 
 
-def sort_nodes(nodes: Iterable[AnyNode]) -> Iterator[AnyNode]:
-    postponed_nodes = set()
+def sort_nodes(nodes: Sequence[AnyNode]) -> Iterator[AnyNode]:
+    postponed_nodes: dict[AnyNode, int] = collections.defaultdict(int)
+    max_attempts = len(nodes)
+
     seen_types = set()
     queue: collections.deque[AnyNode] = collections.deque()
     for node in nodes:
@@ -333,14 +335,14 @@ def sort_nodes(nodes: Iterable[AnyNode]) -> Iterator[AnyNode]:
             dep.type_ in seen_types for dep in node.dependencies
         )
         if not dependencies_satisfied:
-            if node in postponed_nodes:
+            if postponed_nodes[node] >= max_attempts:
                 msg = (
                     f"Could not resolve dependencies for type {node.type_}\n"
                     f"  unresolved dependencies: {[dep.type_ for dep in node.dependencies if dep.type_ not in seen_types]}"
                 )
                 raise ValueError(msg)
-            postponed_nodes.add(node)
-            queue.appendleft(node)
+            postponed_nodes[node] += 1
+            queue.insert(max(0, len(queue) - postponed_nodes[node]), node)
             continue
 
         yield node

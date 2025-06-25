@@ -181,10 +181,9 @@ class Registry:
     ) -> CompiledFn[T] | SyncCompiledFn[T]:
         key = (type_, is_async)
         if key not in self.compilation_cache:
-            result = tuple(
-                resolve_dependencies(root_type=type_, registry=self)
-            )
-            result = tuple(sort_nodes(reversed(result)))
+            nodes = list(resolve_dependencies(root_type=type_, registry=self))
+            nodes.reverse()
+            result = tuple(sort_nodes(nodes))
 
             self.compilation_cache[key] = compile_fn(
                 CompilationParams(
