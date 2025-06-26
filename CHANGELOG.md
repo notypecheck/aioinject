@@ -1,3 +1,14 @@
+## 1.4.0 (2025-06-26)
+
+### Feat
+
+- add OnResolveContextExtension
+
+### Fix
+
+- allow sort_nodes more attempts to resolve postponed nodes
+- OnResolveContextExtension should not be included if compiled function is not async
+
 ## 1.3.0 (2025-06-23)
 
 ### Feat
