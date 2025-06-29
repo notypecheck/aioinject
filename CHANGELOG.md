@@ -1,3 +1,9 @@
+## 1.4.2 (2025-06-29)
+
+### Fix
+
+- bind Object node type to provided interface
+
 ## 1.4.1 (2025-06-26)
 
 ## 1.4.0 (2025-06-26)
