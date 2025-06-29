@@ -203,3 +203,19 @@ async def test_can_resolve_generic_iterable() -> None:
         assert len(instances) == 2  # noqa: PLR2004
         assert isinstance(instances[0], SecondMiddleware)
         assert isinstance(instances[1], ThirdMiddleware)
+
+
+async def test_can_resolve_generic_object() -> None:
+    class MyGeneric(Generic[T]):
+        pass
+
+    class Dependant:
+        def __init__(self, generic: MyGeneric[int]) -> None:
+            self.generic = generic
+
+    container = Container()
+    container.register(Object(MyGeneric(), MyGeneric[int]))
+    container.register(Scoped(Dependant))
+
+    async with container, container.context() as ctx:
+        await ctx.resolve(Dependant)
