@@ -1,3 +1,10 @@
+## 1.4.3 (2025-07-03)
+
+### Fix
+
+- exclude functools.partial args from dependencies
+- fix resolving Object provider types if they have interface
+
 ## 1.4.2 (2025-06-29)
 
 ### Fix
