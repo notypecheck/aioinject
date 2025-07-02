@@ -4,6 +4,7 @@ import collections
 import dataclasses
 import typing
 from collections.abc import Iterator, Sequence
+from types import GenericAlias
 from typing import TYPE_CHECKING, Any, Generic
 
 from aioinject._compilation.naming import make_dependency_name
@@ -36,7 +37,7 @@ class BoundDependency(Generic[T]):
 @dataclasses.dataclass(slots=True, kw_only=True)
 class ProviderNode:
     name: str
-    type_: type[Any]
+    type_: GenericAlias | type[Any]
     provider: ProviderRecord[object]
     dependencies: tuple[BoundDependency[object], ...]
 
@@ -69,12 +70,14 @@ class FromContextNode:
 AnyNode = ProviderNode | IterableNode | FromContextNode
 
 
-def _get_orig_bases(type_: type) -> tuple[type, ...] | None:
+def _get_orig_bases(
+    type_: GenericAlias | type[Any],
+) -> tuple[type, ...] | None:
     return getattr(type_, "__orig_bases__", None)
 
 
 def generic_args_map(  # noqa: C901
-    type_: type[object],
+    type_: GenericAlias | type[Any],
 ) -> dict[str, type[object]]:
     if is_generic_alias(type_):
         if not (parameters := getattr(type_.__origin__, "__parameters__", ())):
@@ -111,7 +114,7 @@ def get_generic_arguments(type_: Any) -> list[typing.TypeVar] | None:
 
 
 def get_generic_parameter_map(
-    provided_type: type[object],
+    provided_type: GenericAlias | type[Any],
     dependencies: Sequence[Dependency[Any]],
 ) -> dict[str, type[object]]:
     args_map = generic_args_map(provided_type)
@@ -135,7 +138,7 @@ def get_generic_parameter_map(
 
 
 def _resolve_provider_node_dependencies(
-    type_: type[object],
+    type_: GenericAlias | type[Any],
     node_name: str,
     provider: ProviderRecord[object],
     registry: Registry,
@@ -228,7 +231,7 @@ def _resolve_node(
                 for provider in providers
             ),
         )
-    resolved_type = (
+    resolved_type: GenericAlias | type[Any] = (
         provider.info.type_ if type_ == provider.info.interface else type_
     )
 
@@ -245,7 +248,11 @@ def _resolve_node(
         )
 
     if isinstance(provider.provider, Object):
-        resolved_type = provider.info.interface
+        resolved_type = (
+            provider.info.interface
+            if is_generic_alias(provider.info.interface)
+            else provider.info.type_
+        )
 
     return ProviderNode(
         type_=resolved_type,

@@ -1,4 +1,4 @@
-from aioinject import Container, Scoped
+from aioinject import Container, Object, Scoped
 
 
 class _Interface:
@@ -17,6 +17,17 @@ class _Dependant:
 async def test_ok() -> None:
     container = Container()
     container.register(Scoped(_A, interface=_Interface))
+    container.register(Scoped(_Dependant))
+
+    async with container.context() as context:
+        result = await context.resolve(_Dependant)
+        assert isinstance(result, _Dependant)
+        assert isinstance(result.interface, _A)
+
+
+async def test_object() -> None:
+    container = Container()
+    container.register(Object(_A(), interface=_Interface))
     container.register(Scoped(_Dependant))
 
     async with container.context() as context:
