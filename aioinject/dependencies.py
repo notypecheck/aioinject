@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import functools
 import inspect
+import itertools
 import typing
-from collections.abc import Mapping
+from collections.abc import Iterator, Mapping
 from inspect import isclass
 
 from aioinject._types import (
@@ -35,6 +36,18 @@ def _typevar_map(
     return resolved_source, typevar_map  # type: ignore[return-value]
 
 
+def _get_ignored_partial_params(
+    dependant: functools.partial[object],
+) -> Iterator[str]:
+    yield from dependant.keywords.keys()
+
+    signature = inspect.signature(dependant.func)
+    for param in itertools.islice(
+        signature.parameters.values(), len(dependant.args)
+    ):
+        yield param.name
+
+
 def collect_parameters(
     dependant: FactoryType[object],
     type_context: Mapping[str, type[object]],
@@ -43,7 +56,7 @@ def collect_parameters(
 
     ignored_keywords: set[str] = set()
     if isinstance(dependant, functools.partial):
-        ignored_keywords.update(dependant.keywords.keys())
+        ignored_keywords.update(_get_ignored_partial_params(dependant))
         dependant = dependant.func
 
     source, typevar_map = _typevar_map(source=dependant)

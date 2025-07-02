@@ -1,10 +1,11 @@
 import functools
 import random
 
-from aioinject import Container, Scoped
+from aioinject import Container, Scoped, Singleton
+from aioinject._types import T
 
 
-async def test_partial() -> None:
+async def test_partial_kwargs() -> None:
     number_1 = random.randint(1, 1000)
     number_2 = random.randint(1, 1000)
 
@@ -21,3 +22,17 @@ async def test_partial() -> None:
     async with container.context() as ctx:
         number = await ctx.resolve(int)
         assert number == number_1 + number_2
+
+
+async def test_partial_args() -> None:
+    async def fn(typ: type[T], dep: str) -> T:
+        assert isinstance(dep, str)
+        return typ()
+
+    container = Container()
+    container.register(
+        Singleton(str), Scoped(functools.partial(fn, int), interface=int)
+    )
+    async with container.context() as ctx:
+        number = await ctx.resolve(int)
+        assert number == 0
