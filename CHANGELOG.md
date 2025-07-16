@@ -1,3 +1,9 @@
+## 1.5.0 (2025-07-16)
+
+### Refactor
+
+- **fasttapi**: move `Request` and `BackgroundTasks` providers registration into `FastAPIExtension`
+
 ## 1.4.3 (2025-07-03)
 
 ### Fix
