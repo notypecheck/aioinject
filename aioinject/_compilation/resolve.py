@@ -16,7 +16,6 @@ from aioinject._types import (
 from aioinject.context import ProviderRecord
 from aioinject.errors import ProviderNotFoundError
 from aioinject.providers.context import FromContext
-from aioinject.providers.object import Object
 from aioinject.providers.scoped import Transient
 from aioinject.scope import BaseScope, CurrentScope
 
@@ -245,13 +244,6 @@ def _resolve_node(
             name=name,
             scope=scope,
             type_=type_,
-        )
-
-    if isinstance(provider.provider, Object):
-        resolved_type = (
-            provider.info.interface
-            if is_generic_alias(provider.info.interface)
-            else provider.info.type_
         )
 
     return ProviderNode(

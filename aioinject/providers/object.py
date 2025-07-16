@@ -3,7 +3,7 @@ import typing
 from collections.abc import Mapping
 from typing import Any, NewType
 
-from aioinject._types import T
+from aioinject._types import T, is_generic_alias
 from aioinject.extensions import ProviderExtension
 from aioinject.extensions.providers import (
     CacheDirective,
@@ -47,8 +47,10 @@ class ObjectProviderExtension(ProviderExtension[Object[Any]]):
             if inspect.isclass(provider.implementation)
             else type(provider.implementation),
         )
-        if isinstance(provider.interface, NewType):
-            actual_type = provider.interface  # type: ignore[unreachable]
+        if is_generic_alias(provider.interface) or isinstance(
+            provider.interface, NewType
+        ):
+            actual_type = provider.interface  # type: ignore[assignment]
 
         return ProviderInfo(
             interface=provider.interface or actual_type,
