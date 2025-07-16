@@ -25,6 +25,15 @@ async def test_function_route(
     assert response.json() == {"value": provided_value}
 
 
+async def test_can_inject_context(
+    http_client: httpx.AsyncClient,
+) -> None:
+    """Should be able to inject Request and BackgroundTasks from context"""
+    response = await http_client.get("/context-injection")
+    assert response.status_code == httpx.codes.OK.value
+    assert response.json() is True
+
+
 async def test_websocket_route(
     starlette_http_client: TestClient,
     provided_value: int,

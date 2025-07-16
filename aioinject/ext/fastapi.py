@@ -10,12 +10,13 @@ from fastapi.websockets import WebSocket
 
 import aioinject.scope
 from aioinject.decorators import ContextParameter, base_inject
+from aioinject.extensions import OnInitExtension
 
 
 if TYPE_CHECKING:
     from starlette.types import ASGIApp, Receive, Scope, Send
 
-    from aioinject import Container
+    from aioinject import Container, SyncContainer
 
 from aioinject import FromContext
 from aioinject._types import (
@@ -77,13 +78,6 @@ class AioInjectMiddleware:
         self.app = app
         self.container = container
 
-        self.container.register(
-            FromContext(Request, scope=aioinject.scope.Scope.request)
-        )
-        self.container.register(
-            FromContext(BackgroundTasks, scope=aioinject.scope.Scope.request)
-        )
-
     async def __call__(
         self,
         scope: Scope,
@@ -98,3 +92,16 @@ class AioInjectMiddleware:
                 ws = WebSocket(scope=scope, receive=receive, send=send)
                 ws.state.aioinject_context = context
             await self.app(scope, receive, send)
+
+
+class FastAPIExtension(OnInitExtension):
+    def on_init(
+        self,
+        container: Container | SyncContainer,
+    ) -> None:
+        container.register(
+            FromContext(Request, scope=aioinject.scope.Scope.request)
+        )
+        container.register(
+            FromContext(BackgroundTasks, scope=aioinject.scope.Scope.request)
+        )

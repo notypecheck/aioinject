@@ -3,14 +3,15 @@ from typing import Annotated
 
 import httpx
 import pytest
-from fastapi import Depends, FastAPI
+from fastapi import BackgroundTasks, Depends, FastAPI
+from fastapi.requests import Request
 from fastapi.testclient import TestClient
 from fastapi.websockets import WebSocket
 from httpx import ASGITransport
 
 import aioinject
 from aioinject import Injected
-from aioinject.ext.fastapi import AioInjectMiddleware, inject
+from aioinject.ext.fastapi import AioInjectMiddleware, FastAPIExtension, inject
 
 
 @inject
@@ -33,6 +34,13 @@ async def async_generator_dependency(
     number: Injected[int],
 ) -> AsyncIterator[int]:
     yield number
+
+
+@pytest.fixture
+def container(provided_value: int) -> aioinject.Container:
+    container = aioinject.Container(extensions=[FastAPIExtension()])
+    container.register(aioinject.Object(provided_value))
+    return container
 
 
 @pytest.fixture
@@ -80,6 +88,15 @@ def app(container: aioinject.Container) -> FastAPI:  # noqa: C901
     async def websocket_route(ws: WebSocket, provided: Injected[int]) -> None:
         await ws.accept()
         await ws.send_json({"value": provided})
+
+    @app_.get("/context-injection")
+    @inject
+    async def context_injection_route(
+        request: Injected[Request], background_tasks: Injected[BackgroundTasks]
+    ) -> bool:
+        return isinstance(request, Request) and isinstance(
+            background_tasks, BackgroundTasks
+        )
 
     return app_
 

@@ -34,3 +34,15 @@ async def test_object() -> None:
         result = await context.resolve(_Dependant)
         assert isinstance(result, _Dependant)
         assert isinstance(result.interface, _A)
+
+
+async def test_should_be_able_to_resolve_type_directly() -> None:
+    container = Container()
+    container.register(Scoped(_A, interface=_Interface))
+    container.register(Scoped(_A))
+
+    async with container.context() as context:
+        assert await context.resolve(_A) is await context.resolve(_Interface)
+
+    async with container.context() as context:
+        assert await context.resolve(_Interface) is await context.resolve(_A)
