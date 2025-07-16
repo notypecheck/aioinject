@@ -1,3 +1,13 @@
+## 1.5.1 (2025-07-16)
+
+### Fix
+
+- assume object's type as interface when it is a NewType
+
+### Refactor
+
+- move generic alias check to ObjectProviderExtension
+
 ## 1.5.0 (2025-07-16)
 
 ### Refactor
