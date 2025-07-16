@@ -1,7 +1,7 @@
 import inspect
 import typing
 from collections.abc import Mapping
-from typing import Any
+from typing import Any, NewType
 
 from aioinject._types import T
 from aioinject.extensions import ProviderExtension
@@ -47,6 +47,8 @@ class ObjectProviderExtension(ProviderExtension[Object[Any]]):
             if inspect.isclass(provider.implementation)
             else type(provider.implementation),
         )
+        if isinstance(provider.interface, NewType):
+            actual_type = provider.interface  # type: ignore[unreachable]
 
         return ProviderInfo(
             interface=provider.interface or actual_type,

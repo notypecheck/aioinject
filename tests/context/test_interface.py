@@ -1,3 +1,5 @@
+from typing import NewType
+
 from aioinject import Container, Object, Scoped
 
 
@@ -34,6 +36,21 @@ async def test_object() -> None:
         result = await context.resolve(_Dependant)
         assert isinstance(result, _Dependant)
         assert isinstance(result.interface, _A)
+
+
+async def test_object_newtype() -> None:
+    A = NewType("A", str)
+    B = NewType("B", str)
+
+    container = Container()
+    container.register(Object("A", A))
+    container.register(Object("B", B))
+
+    async with container.context() as context:
+        a = await context.resolve(A)
+        b = await context.resolve(B)
+        assert a == "A"
+        assert b == "B"
 
 
 async def test_should_be_able_to_resolve_type_directly() -> None:
