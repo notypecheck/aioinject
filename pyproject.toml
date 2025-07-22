@@ -22,38 +22,38 @@ Repository = "https://github.com/notypecheck/aioinject"
 
 [dependency-groups]
 benchmark = [
-    "dependency-injector>=4.48.0",
+    "dependency-injector>=4.48.1",
     "di>=0.79.2",
     "dishka>=1.6.0",
-    "lagom>=2.7.5",
+    "lagom>=2.7.7",
     "punq>=0.7.0",
     "rodi>=2.0.8",
-    "wireup>=2.0.0",
+    "wireup>=2.0.1",
 ]
 dev = [
-    "mypy>=1.16.1",
-    "ruff>=0.12.0",
+    "mypy>=1.17.0",
+    "ruff>=0.12.4",
 ]
 docs = [
     "mkdocs>=1.6.1",
-    "mkdocs-material>=9.6.14",
+    "mkdocs-material>=9.6.15",
 ]
 test = [
-    "aiogram>=3.20.0.post0",
+    "aiogram>=3.21.0",
     "anyio>=4.9.0",
     "asgi-lifespan>=2.1.0",
-    "coverage[toml]>=7.9.1",
-    "django>=5.2.3",
+    "coverage[toml]>=7.9.2",
+    "django>=5.2.4",
     "djangorestframework>=3.16.0",
-    "fastapi>=0.115.13",
+    "fastapi>=0.116.1",
     "litestar>=2.16.0",
-    "pydantic-settings>=2.9.1",
+    "pydantic-settings>=2.10.1",
     "pytest>=8.4.1",
     "pytest-cov>=6.2.1",
     "pytest-django>=4.11.1",
-    "strawberry-graphql>=0.274.3",
+    "strawberry-graphql>=0.278.0",
     "trio>=0.30.0",
-    "uvicorn>=0.34.3",
+    "uvicorn>=0.35.0",
 ]
 types = [
     "django-types>=0.20.0",
