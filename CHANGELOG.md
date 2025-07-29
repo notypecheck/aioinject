@@ -1,3 +1,9 @@
+## 1.6.0 (2025-07-29)
+
+### Feat
+
+- add `context_from_scope` helper function to retrieve context from litestar scope
+
 ## 1.5.1 (2025-07-16)
 
 ### Fix
