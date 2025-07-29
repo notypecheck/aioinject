@@ -5,10 +5,34 @@ import httpx
 import pytest
 from httpx import ASGITransport
 from litestar import Controller, Litestar, Request, get, post
+from litestar.config.app import AppConfig
+from litestar.middleware import ASGIMiddleware
+from litestar.plugins import InitPlugin
+from litestar.types import ASGIApp, Receive, Send
+from litestar.types import Scope as LitestarScope
 
+import aioinject
 from aioinject import Container, FromContext, Injected, Scope
-from aioinject.ext.litestar import AioInjectPlugin, inject
+from aioinject.ext.litestar import AioInjectPlugin, context_from_scope, inject
 from tests.integrations.utils import ExceptionPropagation, PropagatedError
+
+
+class Middleware(ASGIMiddleware):
+    async def handle(
+        self,
+        scope: LitestarScope,
+        receive: Receive,
+        send: Send,
+        next_app: ASGIApp,
+    ) -> None:
+        assert isinstance(context_from_scope(scope), aioinject.Context)
+        await next_app(scope, receive, send)
+
+
+class MiddlewarePlugin(InitPlugin):
+    def on_app_init(self, app_config: AppConfig) -> AppConfig:
+        app_config.middleware.append(Middleware())
+        return app_config
 
 
 class LitestarController(Controller):
@@ -40,7 +64,7 @@ def app(container: Container) -> Litestar:
     container.register(FromContext(Request, scope=Scope.request))
 
     return Litestar(
-        plugins=[AioInjectPlugin(container)],
+        plugins=[AioInjectPlugin(container), MiddlewarePlugin()],
         route_handlers=[LitestarController],
         debug=True,
     )

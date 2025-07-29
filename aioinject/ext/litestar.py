@@ -12,11 +12,16 @@ from litestar.middleware import MiddlewareProtocol
 from litestar.plugins import InitPluginProtocol
 from litestar.types import ASGIApp, Receive, Scope, Send
 
-from aioinject import Container
+from aioinject import Container, Context
 from aioinject.decorators import ContextParameter, base_inject
 
 
-__all__ = ["AioInjectMiddleware", "AioInjectPlugin", "inject"]
+__all__ = [
+    "AioInjectMiddleware",
+    "AioInjectPlugin",
+    "context_from_scope",
+    "inject",
+]
 
 
 _T = TypeVar("_T")
@@ -79,6 +84,10 @@ async def _after_exception(exception: BaseException, scope: Scope) -> None:
             exception,
             exception.__traceback__,
         )
+
+
+def context_from_scope(scope: Scope) -> Context:
+    return scope[_CONTEXT_KEY]  # type: ignore[literal-required]
 
 
 class AioInjectPlugin(InitPluginProtocol):
