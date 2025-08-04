@@ -37,6 +37,9 @@ class Inject:
     pass
 
 
+# Used to comply with Liskov's substitution principle
+INJECTED: Any = object()
+
 _F = TypeVar("_F", bound=Callable[..., Any])
 
 if TYPE_CHECKING:

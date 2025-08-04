@@ -16,6 +16,29 @@ __all__ = ["AioInjectMiddleware", "inject"]
 _ARG_NAME = "aioinject_context"
 
 
+class _ContextGetter:
+    def __init__(self, *, remove_from_args: bool) -> None:
+        self.remove_from_args = remove_from_args
+
+    def __call__(
+        self, args: tuple[Any], kwargs: dict[str, Any]
+    ) -> aioinject.Context:
+        if _ARG_NAME in kwargs:  # pragma: no cover
+            if self.remove_from_args:
+                return kwargs.pop(_ARG_NAME)
+            return kwargs[_ARG_NAME]
+
+        # Try to find a dict-like looking object (in case it's a middleware)
+        for arg in args:
+            if not isinstance(arg, dict):
+                continue
+            if _ARG_NAME in arg:
+                return arg[_ARG_NAME]
+
+        msg = "Could not find aioinject context, did you forget to add AioinjectMiddleware?"
+        raise ValueError(msg)
+
+
 def inject(function: Callable[P, T]) -> Callable[P, T]:  # pragma: no cover
     signature = inspect.signature(function)
     existing_parameter = signature.parameters.get(_ARG_NAME)
@@ -25,9 +48,7 @@ def inject(function: Callable[P, T]) -> Callable[P, T]:  # pragma: no cover
     return base_inject(
         function,
         context_parameters=(),
-        context_getter=lambda args, kwargs: kwargs.pop(_ARG_NAME)  # noqa: ARG005
-        if not existing_parameter
-        else kwargs[_ARG_NAME],
+        context_getter=_ContextGetter(remove_from_args=not existing_parameter),
     )
 
 
