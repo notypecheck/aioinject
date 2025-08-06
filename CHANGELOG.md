@@ -1,3 +1,9 @@
+## Unreleased
+
+### Fix
+
+- TestContainer.override cleared cache generated during override
+
 ## 1.7.0 (2025-08-06)
 
 ### Feat
