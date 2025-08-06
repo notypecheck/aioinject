@@ -1,3 +1,9 @@
+## 1.8.1 (2025-08-06)
+
+### Fix
+
+- TestContainer.override not restoring cache when overriding dependencies with an interface
+
 ## 1.8.0 (2025-08-06)
 
 ### Fix
