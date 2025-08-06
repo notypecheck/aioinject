@@ -92,3 +92,22 @@ async def test_override_scoped_with_singleton() -> None:
         b_scoped = await ctx.resolve(B)
         assert b_scoped is not b
         assert b.a is a
+
+
+async def test_should_not_remove_unrelated_objects_from_cache() -> None:
+    class A:
+        pass
+
+    class B:
+        pass
+
+    container = Container()
+    container.register(Singleton(A), Singleton(B))
+    testcontainer = TestContainer(container)
+
+    async with testcontainer.override(Singleton(B)):
+        a = await container.root.resolve(A)
+        b = await container.root.resolve(B)
+
+    assert await container.root.resolve(A) is a
+    assert await container.root.resolve(B) is not b

@@ -95,7 +95,9 @@ class _Override:
             self.registry.providers[self.info.interface] = self.prev
 
         if self.prev_cache is not None:
+            new_cache = self.container.root.cache
             self.container.root.cache = self.prev_cache
+            self.container.root.cache.update(new_cache)
 
     def _clear_provider(
         self, providers: list[ProviderRecord[object]] | None
