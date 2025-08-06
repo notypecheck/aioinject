@@ -1,3 +1,10 @@
+## 1.7.0 (2025-08-06)
+
+### Feat
+
+- optimize TestContainer.override cleanup
+- add support for injecting into aiogram middleware
+
 ## 1.6.0 (2025-07-29)
 
 ### Feat
