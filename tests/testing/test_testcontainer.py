@@ -111,3 +111,20 @@ async def test_should_not_remove_unrelated_objects_from_cache() -> None:
 
     assert await container.root.resolve(A) is a
     assert await container.root.resolve(B) is not b
+
+
+async def test_interface() -> None:
+    class A:
+        pass
+
+    container = Container()
+    container.register(Singleton(A))
+    testcontainer = TestContainer(container)
+
+    a = await container.root.resolve(A)
+    override = object()
+    async with testcontainer.override(Object(override, interface=A)):
+        a_new = await container.root.resolve(A)
+        assert a_new is override
+
+    assert await container.root.resolve(A) is a

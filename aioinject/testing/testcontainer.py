@@ -32,7 +32,10 @@ def _dependant_providers(
                 dependant_types = [
                     dep.type_ for dep in dependant_provider.info.dependencies
                 ]
-                if provider.info.type_ in dependant_types:
+                if (
+                    provider.info.interface in dependant_types
+                    or provider.info.type_ in dependant_types
+                ):
                     yield dependant_provider
                 stack.append(dependant_provider)
 
@@ -107,13 +110,10 @@ class _Override:
 
         for provider in providers:
             for dependant in _dependant_providers(self.registry, provider):
-                self.registry.compilation_cache.pop(
-                    (dependant.info.type_, True), None
-                )
-                self.registry.compilation_cache.pop(
-                    (dependant.info.type_, False), None
-                )
-                self.container.root.cache.pop(dependant.info.type_, None)
+                for typ in (dependant.info.type_, dependant.info.interface):
+                    self.registry.compilation_cache.pop((typ, True), None)
+                    self.registry.compilation_cache.pop((typ, False), None)
+                    self.container.root.cache.pop(typ, None)
 
 
 class TestContainer:
