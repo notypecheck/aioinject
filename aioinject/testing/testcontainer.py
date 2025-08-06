@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Iterator
 from types import TracebackType
 from typing import TYPE_CHECKING, Any
 
@@ -11,6 +12,29 @@ from aioinject.extensions.providers import ProviderInfo
 
 if TYPE_CHECKING:
     from aioinject import Container, Provider, SyncContainer
+    from aioinject.container import Registry
+
+
+def _dependant_providers(
+    registry: Registry, root: ProviderRecord[object]
+) -> Iterator[ProviderRecord[object]]:
+    stack = [root]
+    seen = []
+    yield root
+    while stack:
+        provider = stack.pop()
+
+        for provider_group in registry.providers.values():
+            for dependant_provider in provider_group:
+                if dependant_provider in seen:
+                    continue
+                seen.append(dependant_provider)
+                dependant_types = [
+                    dep.type_ for dep in dependant_provider.info.dependencies
+                ]
+                if provider.info.type_ in dependant_types:
+                    yield dependant_provider
+                stack.append(dependant_provider)
 
 
 class _Override:
@@ -21,6 +45,7 @@ class _Override:
         self.registry = container.registry
         self.provider = provider
         self.prev: list[ProviderRecord[Any]] | None = None
+        self.prev_cache: dict[type[object], object] | None = None
 
         self.extension = self.registry.find_provider_extension(self.provider)
         self.info: ProviderInfo[Any] = self.extension.extract(
@@ -52,9 +77,9 @@ class _Override:
         self._exit()
 
     def _enter(self) -> None:
-        self._clear()
-
+        self.prev_cache = self.container.root.cache.copy()
         self.prev = self.registry.providers.get(self.info.interface)
+        self._clear_provider(self.prev)
 
         self.registry.providers[self.info.interface] = [
             ProviderRecord(
@@ -65,14 +90,28 @@ class _Override:
         ]
 
     def _exit(self) -> None:
+        self._clear_provider(self.registry.providers[self.info.interface])
         if self.prev is not None:
             self.registry.providers[self.info.interface] = self.prev
 
-        self._clear()
+        if self.prev_cache is not None:
+            self.container.root.cache = self.prev_cache
 
-    def _clear(self) -> None:
-        self.registry.compilation_cache.clear()
-        self.container.root.cache.clear()
+    def _clear_provider(
+        self, providers: list[ProviderRecord[object]] | None
+    ) -> None:
+        if not providers:
+            return  # pragma: no cover
+
+        for provider in providers:
+            for dependant in _dependant_providers(self.registry, provider):
+                self.registry.compilation_cache.pop(
+                    (dependant.info.type_, True), None
+                )
+                self.registry.compilation_cache.pop(
+                    (dependant.info.type_, False), None
+                )
+                self.container.root.cache.pop(dependant.info.type_, None)
 
 
 class TestContainer:
