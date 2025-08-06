@@ -1,8 +1,8 @@
-## Unreleased
+## 1.8.0 (2025-08-06)
 
 ### Fix
 
-- TestContainer.override cleared cache generated during override
+- TestContainer.override created cache generated during override
 
 ## 1.7.0 (2025-08-06)
 
