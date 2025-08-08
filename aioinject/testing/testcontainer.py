@@ -23,12 +23,10 @@ def _dependant_providers(
     yield root
     while stack:
         provider = stack.pop()
-
         for provider_group in registry.providers.values():
             for dependant_provider in provider_group:
                 if dependant_provider in seen:
                     continue
-                seen.append(dependant_provider)
                 dependant_types = [
                     dep.type_ for dep in dependant_provider.info.dependencies
                 ]
@@ -37,7 +35,8 @@ def _dependant_providers(
                     or provider.info.type_ in dependant_types
                 ):
                     yield dependant_provider
-                stack.append(dependant_provider)
+                    stack.append(dependant_provider)
+                    seen.append(dependant_provider)
 
 
 class _Override:

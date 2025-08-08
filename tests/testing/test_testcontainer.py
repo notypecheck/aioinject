@@ -128,3 +128,28 @@ async def test_interface() -> None:
         assert a_new is override
 
     assert await container.root.resolve(A) is a
+
+
+async def test_should_remove_dependant_objects() -> None:
+    class A:
+        pass
+
+    @dataclasses.dataclass
+    class B:
+        a: A
+
+    @dataclasses.dataclass
+    class C:
+        b: B
+
+    container = Container()
+    container.register(Singleton(A), Singleton(B), Singleton(C))
+    testcontainer = TestContainer(container)
+
+    a_mock = A()
+    async with testcontainer.override(Object(a_mock)):
+        c_mocked = await container.root.resolve(C)
+
+    c = await container.root.resolve(C)
+    assert c is not c_mocked
+    assert c.b.a is not a_mock
