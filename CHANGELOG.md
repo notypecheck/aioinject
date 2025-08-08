@@ -1,3 +1,9 @@
+## 1.8.2 (2025-08-08)
+
+### Fix
+
+- **testing**: providers dependent on overridden provider not being cleaned up
+
 ## 1.8.1 (2025-08-06)
 
 ### Fix
