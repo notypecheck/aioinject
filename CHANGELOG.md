@@ -1,3 +1,9 @@
+## 1.8.3 (2025-08-15)
+
+### Fix
+
+- raise error if return type of `functools.partial` function is a generic and no explicit interface was provided
+
 ## 1.8.2 (2025-08-08)
 
 ### Fix
