@@ -77,6 +77,7 @@ def _guess_return_type(  # noqa: C901
     factory: FactoryType[T],
     type_context: Mapping[str, type[object]],
 ) -> type[T]:
+    original = factory
     if isinstance(factory, functools.partial):
         factory = factory.func
     unwrapped = inspect.unwrap(factory)
@@ -95,7 +96,7 @@ def _guess_return_type(  # noqa: C901
         raise CannotDetermineReturnTypeError(msg) from e
     except NameError:
         # handle future annotations.
-        # functions might have dependecies in them
+        # functions might have dependencies in them
         # and we don't have the container context here so
         # we can't call _get_type_hints
         ret_annotation = unwrapped.__annotations__["return"]
@@ -128,6 +129,12 @@ def _guess_return_type(  # noqa: C901
         if not inspect.isclass(self_cls):
             return self_cls.__class__
         return self_cls
+
+    if isinstance(original, functools.partial):
+        return_annotation = inspect.signature(unwrapped).return_annotation
+        if isinstance(return_annotation, GenericAlias | TypeVar):
+            msg = 'Parsing Generic or TypeVar return annotations with functools.partial is not supported, try supplying type manually with "interface" keyword.'
+            raise CannotDetermineReturnTypeError(msg)
 
     return return_type
 
