@@ -1,9 +1,12 @@
+from __future__ import annotations
+
 import functools
 import inspect
 from collections.abc import Mapping
 from typing import Any
 
-from aioinject._types import FactoryResult, FactoryType, T, _guess_return_type
+from aioinject._internal.type_sources import TypeResolver
+from aioinject._types import FactoryResult, FactoryType, T
 from aioinject.dependencies import collect_parameters
 from aioinject.errors import CannotDetermineReturnTypeError
 from aioinject.extensions import ProviderExtension
@@ -75,6 +78,7 @@ class ScopedProviderExtension(ProviderExtension[Scoped[Any]]):
         self,
         provider: Scoped[T],
         type_context: Mapping[str, type[object]],
+        type_resolver: TypeResolver,
     ) -> ProviderInfo[T]:
         scope = (
             provider.scope
@@ -94,8 +98,9 @@ class ScopedProviderExtension(ProviderExtension[Scoped[Any]]):
         )
 
         try:
-            actual_type = _guess_return_type(
-                provider.implementation, type_context=type_context
+            actual_type = type_resolver.return_type(
+                provider.implementation,
+                type_context=type_context,
             )
         except CannotDetermineReturnTypeError:
             if not provider.interface:

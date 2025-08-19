@@ -2,13 +2,11 @@ from __future__ import annotations
 
 import collections
 import contextlib
-import functools
 import inspect
 import sys
 import types
 import typing
 from collections.abc import Awaitable, Callable, Iterator, Mapping, Sequence
-from inspect import isclass
 from types import GenericAlias
 from typing import (
     TYPE_CHECKING,
@@ -20,9 +18,6 @@ from typing import (
     TypeVar,
 )
 
-from typing_extensions import Self
-
-from aioinject.errors import CannotDetermineReturnTypeError
 from aioinject.scope import BaseScope
 
 
@@ -56,87 +51,16 @@ ExecutionContext = dict[BaseScope, "Context | SyncContext"]
 CompiledFn = Callable[[ExecutionContext, BaseScope], Awaitable[T_co]]
 SyncCompiledFn = Callable[[ExecutionContext, BaseScope], T_co]
 
+TypeContext = Mapping[str, type[object]]
+
 
 class UnwrappedAnnotation(NamedTuple):
     type: type[object]
     args: Sequence[object]
 
 
-def get_return_annotation(
-    ret_annotation: str,
-    context: dict[str, Any],
-) -> type[Any]:
-    return eval(ret_annotation, context)  # noqa: S307
-
-
 def _get_function_namespace(fn: Callable[..., Any]) -> dict[str, Any]:
     return getattr(sys.modules.get(fn.__module__, None), "__dict__", {})
-
-
-def _guess_return_type(  # noqa: C901
-    factory: FactoryType[T],
-    type_context: Mapping[str, type[object]],
-) -> type[T]:
-    original = factory
-    if isinstance(factory, functools.partial):
-        factory = factory.func
-    unwrapped = inspect.unwrap(factory)
-
-    origin = typing.get_origin(factory)
-    is_generic = origin and inspect.isclass(origin)
-    if isclass(factory) or is_generic:
-        return typing.cast("type[T]", factory)
-
-    try:
-        return_type = typing.get_type_hints(
-            unwrapped, include_extras=True, localns=type_context
-        )["return"]
-    except KeyError as e:
-        msg = f"Factory {factory.__qualname__} does not specify return type."
-        raise CannotDetermineReturnTypeError(msg) from e
-    except NameError:
-        # handle future annotations.
-        # functions might have dependencies in them
-        # and we don't have the container context here so
-        # we can't call _get_type_hints
-        ret_annotation = unwrapped.__annotations__["return"]
-
-        try:
-            return_type = get_return_annotation(
-                ret_annotation,
-                context=_get_function_namespace(unwrapped),
-            )
-        except NameError as e:
-            msg = f"Factory {factory.__qualname__} does not specify return type. Or it's type is not defined yet."
-            raise CannotDetermineReturnTypeError(msg) from e
-    if origin := typing.get_origin(return_type):
-        args = typing.get_args(return_type)
-
-        is_async_gen = (
-            origin in _ASYNC_GENERATORS
-            and inspect.isasyncgenfunction(unwrapped)
-        )
-        is_sync_gen = origin in _GENERATORS and inspect.isgeneratorfunction(
-            unwrapped,
-        )
-        if is_async_gen or is_sync_gen:
-            return_type = args[0]
-
-    # Classmethod returning `typing.Self`
-    if return_type == Self and (
-        self_cls := getattr(factory, "__self__", None)
-    ):
-        if not inspect.isclass(self_cls):
-            return self_cls.__class__
-        return self_cls
-
-    if isinstance(original, functools.partial):
-        return_annotation = inspect.signature(unwrapped).return_annotation
-        if isinstance(return_annotation, GenericAlias | TypeVar):
-            msg = 'Parsing Generic or TypeVar return annotations with functools.partial is not supported, try supplying type manually with "interface" keyword.'
-            raise CannotDetermineReturnTypeError(msg)
-
-    return return_type
 
 
 _sentinel = object()

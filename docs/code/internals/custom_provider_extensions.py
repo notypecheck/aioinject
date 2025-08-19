@@ -4,6 +4,7 @@ from typing import Any, TypeVar
 from pydantic_settings import BaseSettings
 
 from aioinject import Provider, Scope, SyncContainer
+from aioinject._internal.type_sources import TypeResolver
 from aioinject.extensions import ProviderExtension
 from aioinject.extensions.providers import (
     CacheDirective,
@@ -36,6 +37,7 @@ class SettingsProviderExtension(
         self,
         provider: SettingsProvider[TSettings],
         type_context: Mapping[str, type[object]],  # noqa: ARG002
+        type_resolver: TypeResolver,  # noqa: ARG002
     ) -> ProviderInfo[TSettings]:
         return ProviderInfo(
             interface=provider.implementation,

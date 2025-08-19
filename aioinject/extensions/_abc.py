@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import typing
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from contextlib import AbstractAsyncContextManager, AbstractContextManager
 from typing import (
     TYPE_CHECKING,
@@ -11,14 +11,17 @@ from typing import (
     runtime_checkable,
 )
 
-from aioinject.context import ProviderRecord
-from aioinject.extensions.providers import ProviderInfo
+from aioinject._internal.type_sources import (
+    ReturnTypeSource,
+    TypeResolver,
+)
 
 
 if TYPE_CHECKING:
     from aioinject import Container, Context, SyncContainer, SyncContext
-    from aioinject._types import T
-
+    from aioinject.context import ProviderRecord
+    from aioinject.extensions.providers import ProviderInfo
+from aioinject._types import T
 from aioinject.providers import Provider
 
 
@@ -59,6 +62,7 @@ class ProviderExtension(Protocol[_TProvider_contra]):
         self,
         provider: _TProvider_contra,
         type_context: Mapping[str, type[object]],
+        type_resolver: TypeResolver,
     ) -> ProviderInfo[Any]: ...
 
 
@@ -94,6 +98,14 @@ class OnResolveContextExtension(Protocol):
     ) -> AbstractAsyncContextManager[None]: ...
 
 
+class TypeSourcesExtension:
+    def __init__(
+        self,
+        return_type_sources: Sequence[ReturnTypeSource[Any]],
+    ) -> None:
+        self.sources = return_type_sources
+
+
 Extension = (
     ProviderExtension[Any]
     | OnInitExtension
@@ -102,4 +114,5 @@ Extension = (
     | OnResolveExtension
     | OnResolveSyncExtension
     | OnResolveContextExtension
+    | TypeSourcesExtension
 )

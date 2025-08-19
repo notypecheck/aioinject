@@ -1,13 +1,19 @@
-from collections.abc import Mapping
-from typing import Any
+from __future__ import annotations
 
+from collections.abc import Mapping
+from typing import TYPE_CHECKING, Any
+
+from aioinject._internal.type_sources import TypeResolver
 from aioinject._types import FactoryResult, T
 from aioinject.extensions import ProviderExtension
 from aioinject.extensions.providers import (
     ProviderInfo,
 )
 from aioinject.providers.abc import Provider
-from aioinject.scope import BaseScope, CurrentScope
+
+
+if TYPE_CHECKING:
+    from aioinject.scope import BaseScope, CurrentScope
 
 
 class FromContext(Provider[T]):
@@ -31,6 +37,7 @@ class ContextProviderExtension(ProviderExtension[FromContext[Any]]):
         self,
         provider: FromContext[T],
         type_context: Mapping[str, type[object]],  # noqa: ARG002
+        type_resolver: TypeResolver,  # noqa: ARG002
     ) -> ProviderInfo[T]:
         return ProviderInfo(
             interface=provider.implementation,

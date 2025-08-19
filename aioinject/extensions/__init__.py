@@ -7,6 +7,7 @@ from aioinject.extensions._abc import (
     OnResolveExtension,
     OnResolveSyncExtension,
     ProviderExtension,
+    TypeSourcesExtension,
 )
 
 
@@ -19,4 +20,5 @@ __all__ = [
     "OnResolveExtension",
     "OnResolveSyncExtension",
     "ProviderExtension",
+    "TypeSourcesExtension",
 ]

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import collections
+import itertools
 import typing
 from collections.abc import Sequence
 from types import TracebackType
@@ -16,6 +17,12 @@ from aioinject._compilation.resolve import (
     resolve_dependencies,
     sort_nodes,
 )
+from aioinject._internal.type_sources import (
+    ClassSource,
+    FunctionSource,
+    FunctoolsPartialSource,
+    TypeResolver,
+)
 from aioinject._types import CompiledFn, SyncCompiledFn, T, get_generic_origin
 from aioinject.context import Context, ProviderRecord, SyncContext
 from aioinject.errors import ProviderNotFoundError
@@ -28,6 +35,7 @@ from aioinject.extensions import (
     OnResolveExtension,
     OnResolveSyncExtension,
     ProviderExtension,
+    TypeSourcesExtension,
 )
 from aioinject.extensions.providers import ProviderInfo
 from aioinject.providers import Provider
@@ -37,12 +45,25 @@ from aioinject.providers.scoped import ScopedProviderExtension
 from aioinject.scope import BaseScope, Scope, next_scope
 
 
-__all__ = ["Container", "Extensions", "Registry", "SyncContainer"]
+__all__ = [
+    "DEFAULT_EXTENSIONS",
+    "Container",
+    "Extensions",
+    "Registry",
+    "SyncContainer",
+]
 
 DEFAULT_EXTENSIONS = (
     ScopedProviderExtension(),
     ObjectProviderExtension(),
     ContextProviderExtension(),
+    TypeSourcesExtension(
+        return_type_sources=(
+            ClassSource(),
+            FunctoolsPartialSource(),
+            FunctionSource(),
+        )
+    ),
 )
 
 
@@ -52,7 +73,9 @@ class Extensions:
         extensions: Sequence[Extension],
         default_extensions: Sequence[Extension] = DEFAULT_EXTENSIONS,
     ) -> None:
-        self._extensions: Final = tuple((*extensions, *default_extensions))  # noqa: C409
+        self._extensions: Final = tuple(  # noqa: C409
+            (*extensions, *default_extensions)
+        )
 
         self.providers = [
             e for e in self._extensions if isinstance(e, ProviderExtension)
@@ -81,6 +104,9 @@ class Extensions:
             for e in self._extensions
             if isinstance(e, OnResolveContextExtension) and e.enabled
         ]
+        self.source_extensions = [
+            e for e in self._extensions if isinstance(e, TypeSourcesExtension)
+        ]
 
 
 RegistryCacheKey: TypeAlias = tuple[type[object], bool]
@@ -100,6 +126,14 @@ class Registry:
             dict[RegistryCacheKey, CompiledFn[Any]]
         ] = {}
 
+        self._type_resolver = TypeResolver(
+            tuple(
+                itertools.chain.from_iterable(
+                    ext.sources for ext in self.extensions.source_extensions
+                )
+            )
+        )
+
     def register(self, *providers: Provider[Any]) -> None:
         for provider in providers:
             self._register_one(provider)
@@ -118,7 +152,9 @@ class Registry:
         ext = self.find_provider_extension(provider)
         if ext.supports_provider(provider):
             info: ProviderInfo[T] = ext.extract(
-                provider, type_context=self.type_context
+                provider,
+                type_context=self.type_context,
+                type_resolver=self._type_resolver,
             )
             if any(
                 provider.implementation

@@ -1,8 +1,11 @@
+from __future__ import annotations
+
 import inspect
 import typing
 from collections.abc import Mapping
 from typing import Any, NewType
 
+from aioinject._internal.type_sources import TypeResolver
 from aioinject._types import T, is_generic_alias
 from aioinject.extensions import ProviderExtension
 from aioinject.extensions.providers import (
@@ -40,6 +43,7 @@ class ObjectProviderExtension(ProviderExtension[Object[Any]]):
         self,
         provider: Object[T],
         type_context: Mapping[str, Any],  # noqa: ARG002
+        type_resolver: TypeResolver,  # noqa: ARG002
     ) -> ProviderInfo[T]:
         actual_type = typing.cast(
             "type[T]",

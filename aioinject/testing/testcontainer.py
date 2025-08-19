@@ -51,7 +51,9 @@ class _Override:
 
         self.extension = self.registry.find_provider_extension(self.provider)
         self.info: ProviderInfo[Any] = self.extension.extract(
-            self.provider, self.registry.type_context
+            self.provider,
+            self.registry.type_context,
+            self.registry._type_resolver,  # noqa: SLF001
         )
 
     async def __aenter__(self) -> Self:
