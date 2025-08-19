@@ -1,3 +1,9 @@
+## 1.9.0 (2025-08-19)
+
+### Refactor
+
+- move return type resolving into ReturnTypeSource
+
 ## 1.8.3 (2025-08-15)
 
 ### Fix
