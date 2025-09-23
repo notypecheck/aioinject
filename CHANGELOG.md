@@ -1,3 +1,9 @@
+## 1.10.0 (2025-09-23)
+
+### Feat
+
+- add grpcio integration
+
 ## 1.9.0 (2025-08-19)
 
 ### Refactor
