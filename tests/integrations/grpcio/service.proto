@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+message Request {
+    string field = 1;
+}
+
+message Response {
+    string field = 1;
+}
+
+service Service {
+    rpc Unary(Request) returns (Response);
+    rpc UnaryStream(Request) returns (stream Response);
+    rpc StreamUnary(stream Request) returns (Response);
+    rpc StreamStream(stream Request) returns (stream Response);
+}

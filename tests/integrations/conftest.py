@@ -5,6 +5,8 @@ from typing import TypedDict
 import pytest
 
 import aioinject
+from aioinject import Context, FromContext
+from aioinject.scope import CurrentScope
 
 
 @pytest.fixture
@@ -33,6 +35,7 @@ def get_node() -> ScopedNode:
 @pytest.fixture
 def container(provided_value: int) -> aioinject.Container:
     container = aioinject.Container()
+    container.register(FromContext(Context, scope=CurrentScope()))
     container.register(aioinject.Object(provided_value))
     container.register(aioinject.Scoped(NumberService))
     container.register(aioinject.Scoped(get_node))
