@@ -1,3 +1,9 @@
+## 1.10.1 (2025-10-13)
+
+### Fix
+
+- **telegram**: support using inject decorator on `BaseHandler.handle`
+
 ## 1.10.0 (2025-09-23)
 
 ### Feat
