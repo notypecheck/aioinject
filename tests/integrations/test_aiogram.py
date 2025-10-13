@@ -3,6 +3,7 @@ from typing import Any
 
 import pytest
 from aiogram import BaseMiddleware, Router
+from aiogram.handlers import MessageHandler
 from aiogram.types import TelegramObject
 
 import aioinject
@@ -34,6 +35,17 @@ async def test_handler(container: Container) -> None:
         assert isinstance(data["aioinject_context"], aioinject.Context)
 
     await middleware(handler=handler, event=event_, data=data_)  # type: ignore[arg-type]
+
+
+async def test_class_handler(container: Container) -> None:
+    class MyHandler(MessageHandler):
+        @inject
+        async def handle(self, number: Injected[int] = INJECTED) -> Any:
+            return number
+
+    async with container.context() as ctx:
+        handler = MyHandler(object(), aioinject_context=ctx)  # type: ignore[arg-type]
+        assert await handler.handle() is await container.root.resolve(int)
 
 
 async def test_can_inject_into_middleware(container: Container) -> None:

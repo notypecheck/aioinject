@@ -3,6 +3,7 @@ from collections.abc import Awaitable, Callable
 from typing import Any
 
 from aiogram import BaseMiddleware, Router
+from aiogram.handlers import BaseHandler
 from aiogram.types import TelegramObject
 
 import aioinject
@@ -20,8 +21,10 @@ class _ContextGetter:
     def __init__(self, *, remove_from_args: bool) -> None:
         self.remove_from_args = remove_from_args
 
-    def __call__(
-        self, args: tuple[Any], kwargs: dict[str, Any]
+    def __call__(  # noqa: C901
+        self,
+        args: tuple[Any],
+        kwargs: dict[str, Any],
     ) -> aioinject.Context:
         if _ARG_NAME in kwargs:  # pragma: no cover
             if self.remove_from_args:
@@ -29,7 +32,10 @@ class _ContextGetter:
             return kwargs[_ARG_NAME]
 
         # Try to find a dict-like looking object (in case it's a middleware)
-        for arg in args:
+        for arg_pos, arg in enumerate(args):
+            # BaseHandler.handle is being called
+            if arg_pos == 0 and isinstance(arg, BaseHandler):
+                arg = arg.data  # noqa: PLW2901
             if not isinstance(arg, dict):
                 continue
             if _ARG_NAME in arg:
