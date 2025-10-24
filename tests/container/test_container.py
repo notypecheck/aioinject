@@ -71,7 +71,7 @@ def test_cant_register_multiple_providers_for_same_type(
 
     with pytest.raises(
         ValueError,
-        match="^Provider for type <class 'int'> with same implementation already registered$",
+        match=r"^Provider for type <class 'int'> with same implementation already registered$",
     ):
         container.register(Scoped(int))
 
