@@ -1,6 +1,6 @@
 [project]
 name = "aioinject"
-version = "1.10.1"
+version = "1.10.2"
 description = "Async dependency injection library"
 requires-python = ">=3.10"
 authors = [
@@ -103,7 +103,7 @@ fail_under = 100
 
 [tool.commitizen]
 name = "cz_conventional_commits"
-version = "1.10.1"
+version = "1.10.2"
 version_files = [
     "aioinject/__init__.py",
     "pyproject.toml:version"

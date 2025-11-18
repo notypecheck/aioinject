@@ -1,3 +1,9 @@
+## 1.10.2 (2025-11-18)
+
+### Fix
+
+- clear container cache on __exit__ and __aexit__
+
 ## 1.10.1 (2025-10-13)
 
 ### Fix
