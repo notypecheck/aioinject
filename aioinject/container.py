@@ -309,6 +309,7 @@ class Container(_BaseContainer):
     ) -> None:
         if self._root:
             await self._root.__aexit__(exc_type, exc_val, exc_tb)
+            self._root = None
 
 
 class SyncContainer(_BaseContainer):
@@ -340,6 +341,7 @@ class SyncContainer(_BaseContainer):
     ) -> None:
         if self._root:
             self._root.__exit__(exc_type, exc_val, exc_tb)
+            self._root = None
 
     @property
     def root(self) -> SyncContext:
